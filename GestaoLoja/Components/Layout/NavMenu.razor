@@ -1,0 +1,100 @@
+﻿@implements IDisposable
+
+@using Microsoft.AspNetCore.Identity
+@using GestaoLoja.Data
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+@inject NavigationManager NavigationManager
+
+<div class="top-row">
+    <div class="container-fluid">
+        <a class="logo-span" href="/">@AppConfig.tituloHomePage</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Gestão de Loja
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="produtos">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Produtos
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="categoria">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Categorias
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="modoentregas">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Modos de Entrega
+            </NavLink>
+        </div>
+        
+        <AuthorizeView>
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="venda">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Gerir Vendas
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="utilizadores">
+                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Gerir Utilizadores
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="admin/roles">
+                        <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Criar Roles
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="admin/users">
+                        <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Gerir Roles
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="admin/seed-test-data">
+                        <span class="bi bi-database-fill-add" aria-hidden="true"></span> Dados de Teste
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="fornecedores">
+                        <span class="bi bi-truck" aria-hidden="true"></span> Gerir Fornecedores
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+    </nav>
+</div>
+
+@code {
+    private string? currentUrl;
+
+    protected override void OnInitialized()
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}

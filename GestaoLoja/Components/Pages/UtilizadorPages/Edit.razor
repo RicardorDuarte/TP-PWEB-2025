@@ -1,0 +1,113 @@
+﻿@page "/utilizadores/edit"
+
+@attribute [Authorize(Roles = "Administrador, Funcionario")]
+
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using GestaoLoja.Entities
+@using GestaoLoja.Data
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject IDbContextFactory<GestaoLoja.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Editar Utilizador</PageTitle>
+
+<h1>Editar Estado do Utilizador</h1>
+
+<h4>Utilizador</h4>
+<hr />
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+@if (utilizador is null)
+{
+    <p><em>Carregando...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="utilizador" OnValidSubmit="UpdateUtilizador" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="utilizador.Id" value="@utilizador.Id" />
+
+                <div class="mb-3">
+                    <label for="estado" class="form-label">Estado:</label>
+                    <InputSelect id="estado" @bind-Value="utilizador.Estado" class="form-control">
+                        <option value="" disabled selected>Selecione um estado</option>
+                        <option value="Ativo">Ativo</option>
+                        <option value="Pendente">Pendente</option>
+                    </InputSelect>
+                    <ValidationMessage For="() => utilizador.Estado" class="text-danger" />
+                </div>
+
+                <button type="submit" class="btn btn-primary"><img title="Gravar" src="/img/saveicon.png" style="height:30px" /></button>
+                <a href="/utilizadores" type="button" class="btn btn-outline-secondary"><img title="Recuar" src="/img/backicon.png" style="height:30px" /></a>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [SupplyParameterFromQuery]
+    public string Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public ApplicationUser? utilizador { get; set; }
+
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+        utilizador ??= await context.Users.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (utilizador is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    public async Task UpdateUtilizador()
+    {
+        if (utilizador is null || string.IsNullOrEmpty(Id))
+        {
+            return;
+        }
+
+        // Obter o ID do usuário logado
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userId = UserManager.GetUserId(user);
+
+        // Verificar se o ID do usuário logado é igual ao ID do usuário que está sendo editado
+        if (userId == Id)
+        {
+            // Definir a mensagem de erro
+            errorMessage = "Você não pode atualizar seu próprio estado.";
+            return;
+        }
+
+        using var context = DbFactory.CreateDbContext();
+
+        // Recupera o usuário do banco de dados
+        var userToUpdate = await context.Users.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (userToUpdate != null)
+        {
+            // Atualiza apenas o campo Estado
+            userToUpdate.Estado = utilizador.Estado;
+
+            // Salva as alterações no banco de dados
+            await context.SaveChangesAsync();
+
+            // Navega para a página de usuários após a atualização
+            NavigationManager.NavigateTo("/utilizadores");
+        }
+    }
+}

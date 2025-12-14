@@ -1,0 +1,260 @@
+@page "/fornecedores"
+
+@rendermode InteractiveServer
+
+@attribute [Authorize(Roles = "Administrador, Funcionario")]
+
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using GestaoLoja.Data
+@using Microsoft.AspNetCore.Identity
+
+@inject UserManager<ApplicationUser> UserManager
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Lista de Fornecedores</PageTitle>
+
+<h1>Lista de Fornecedores</h1>
+
+@if (!string.IsNullOrEmpty(mensagem))
+{
+    <div class="alert @(mensagem.Contains("sucesso") ? "alert-success" : "alert-danger") alert-dismissible fade show" role="alert">
+        @mensagem
+        <button type="button" class="btn-close" @onclick="() => mensagem = string.Empty"></button>
+    </div>
+}
+
+<!-- Fornecedores Pendentes -->
+<h4 class="mt-4">Fornecedores Pendentes</h4>
+@if (fornecedoresPendentes == null || !fornecedoresPendentes.Any())
+{
+    <p class="text-muted">Não há fornecedores pendentes.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>UserName</th>
+                    <th>Email</th>
+                    <th>Nome</th>
+                    <th>Apelido</th>
+                    <th>NIF</th>
+                    <th>Localidade</th>
+                    <th>País</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var fornecedor in fornecedoresPendentes)
+                {
+                    <tr>
+                        <td>@fornecedor.UserName</td>
+                        <td>@fornecedor.Email</td>
+                        <td>@fornecedor.Nome</td>
+                        <td>@fornecedor.Apelido</td>
+                        <td>@fornecedor.NIF</td>
+                        <td>@fornecedor.Localidade</td>
+                        <td>@fornecedor.Pais</td>
+                        <td>
+                            <button class="btn btn-success btn-sm" @onclick="() => AprovarFornecedor(fornecedor.Id)">
+                                <i class="bi bi-check-circle"></i> Aprovar
+                            </button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => RejeitarFornecedor(fornecedor.Id)">
+                                <i class="bi bi-x-circle"></i> Rejeitar
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<!-- atvios -->
+<h4 class="mt-5">Fornecedores Ativos</h4>
+@if (fornecedoresAtivos == null || !fornecedoresAtivos.Any())
+{
+    <p class="text-muted">Não há fornecedores ativos.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>UserName</th>
+                    <th>Email</th>
+                    <th>Nome</th>
+                    <th>Apelido</th>
+                    <th>NIF</th>
+                    <th>Localidade</th>
+                    <th>País</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var fornecedor in fornecedoresAtivos)
+                {
+                    var numProdutos = produtosPorFornecedor.GetValueOrDefault(fornecedor.Id, 0);
+                    <tr>
+                        <td>@fornecedor.UserName</td>
+                        <td>@fornecedor.Email</td>
+                        <td>@fornecedor.Nome</td>
+                        <td>@fornecedor.Apelido</td>
+                        <td>@fornecedor.NIF</td>
+                        <td>@fornecedor.Localidade</td>
+                        <td>@fornecedor.Pais</td>
+                        <td>
+                            <a href="/utilizadores/edit?id=@fornecedor.Id" class="btn btn-secondary btn-sm" title="Gerir">
+                                Gerir
+                            </a>
+                            <a href="/fornecedores/@fornecedor.Id" class="btn btn-primary btn-sm" title="Ver Produtos">
+                                Ver Produtos (@numProdutos)
+                            </a>
+                            <button class="btn btn-warning btn-sm" @onclick="() => BloquearFornecedor(fornecedor.Id)">
+                                Bloquear
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<!-- bloqueados -->
+<h4 class="mt-5">Fornecedores Bloqueados / Inativos</h4>
+@if (fornecedoresBloqueados == null || !fornecedoresBloqueados.Any())
+{
+    <p class="text-muted">Não há fornecedores bloqueados/inativos.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-secondary">
+            <thead>
+                <tr>
+                    <th>UserName</th>
+                    <th>Email</th>
+                    <th>Nome</th>
+                    <th>Estado</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var fornecedor in fornecedoresBloqueados)
+                {
+                    <tr>
+                        <td>@fornecedor.UserName</td>
+                        <td>@fornecedor.Email</td>
+                        <td>@fornecedor.Nome @fornecedor.Apelido</td>
+                        <td><span class="badge bg-danger">@fornecedor.Estado</span></td>
+                        <td>
+                            <button class="btn btn-success btn-sm" @onclick="() => DesbloquearFornecedor(fornecedor.Id)">
+                                <i class="bi bi-unlock"></i> Desbloquear
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private List<ApplicationUser>? fornecedoresPendentes;
+    private List<ApplicationUser>? fornecedoresAtivos;
+    private List<ApplicationUser>? fornecedoresBloqueados;
+    private Dictionary<string, int> produtosPorFornecedor = new();
+    private string mensagem = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarDados();
+    }
+
+    private async Task CarregarDados()
+    {
+        // Get all users with Fornecedor role
+        var todosFornecedores = await UserManager.GetUsersInRoleAsync("Fornecedor");
+
+        fornecedoresPendentes = todosFornecedores
+            .Where(f => string.IsNullOrEmpty(f.Estado) || f.Estado == "Pendente" || f.Estado == "Inativo")
+            .OrderBy(f => f.Nome)
+            .ToList();
+            
+        fornecedoresAtivos = todosFornecedores
+            .Where(f => f.Estado == "Ativo")
+            .OrderBy(f => f.Nome)
+            .ToList();
+            
+        fornecedoresBloqueados = todosFornecedores
+            .Where(f => f.Estado == "Bloqueado")
+            .OrderBy(f => f.Nome)
+            .ToList();
+
+        // Count products per supplier
+        using var context = DbFactory.CreateDbContext();
+        var produtos = await context.Produtos
+            .GroupBy(p => p.FornecedorId)
+            .Select(g => new { FornecedorId = g.Key, Count = g.Count() })
+            .ToListAsync();
+
+        produtosPorFornecedor = produtos.ToDictionary(p => p.FornecedorId, p => p.Count);
+    }
+
+    private async Task AprovarFornecedor(string id)
+    {
+        var fornecedor = await UserManager.FindByIdAsync(id);
+
+        if (fornecedor != null)
+        {
+            fornecedor.Estado = "Ativo";
+            await UserManager.UpdateAsync(fornecedor);
+            mensagem = $"Fornecedor '{fornecedor.Nome}' aprovado com sucesso!";
+            await CarregarDados();
+        }
+    }
+
+    private async Task RejeitarFornecedor(string id)
+    {
+        var fornecedor = await UserManager.FindByIdAsync(id);
+
+        if (fornecedor != null)
+        {
+            // Remove the Fornecedor role
+            await UserManager.RemoveFromRoleAsync(fornecedor, "Fornecedor");
+            mensagem = $"Fornecedor '{fornecedor.Nome}' rejeitado. Role removida.";
+            await CarregarDados();
+        }
+    }
+
+    private async Task BloquearFornecedor(string id)
+    {
+        var fornecedor = await UserManager.FindByIdAsync(id);
+
+        if (fornecedor != null)
+        {
+            fornecedor.Estado = "Bloqueado";
+            await UserManager.UpdateAsync(fornecedor);
+            mensagem = $"Fornecedor '{fornecedor.Nome}' bloqueado!";
+            await CarregarDados();
+        }
+    }
+
+    private async Task DesbloquearFornecedor(string id)
+    {
+        var fornecedor = await UserManager.FindByIdAsync(id);
+
+        if (fornecedor != null)
+        {
+            fornecedor.Estado = "Ativo";
+            await UserManager.UpdateAsync(fornecedor);
+            mensagem = $"Fornecedor '{fornecedor.Nome}' desbloqueado!";
+            await CarregarDados();
+        }
+    }
+}

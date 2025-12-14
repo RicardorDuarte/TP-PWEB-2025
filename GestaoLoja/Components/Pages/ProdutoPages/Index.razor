@@ -1,0 +1,86 @@
+﻿@page "/produtos"
+
+@attribute [Authorize(Roles = "Administrador, Funcionario")]
+
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using GestaoLoja.Entities
+@using GestaoLoja.Data
+
+@rendermode InteractiveServer
+
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+
+@implements IAsyncDisposable
+
+<PageTitle>Gerir Produtos</PageTitle>
+
+<h1>Lista de Produtos</h1>
+
+<p>
+    <a href="produtos/create"><img title="Novo Registo" src="/img/novo.png" style="height:50px" /></a>
+</p>
+
+<QuickGrid Items="@produtosQueryable" @ref="refgrid" Pagination="@pagination">
+    <PropertyColumn Property="produto => produto.Nome" Title="Nome" Sortable="true" />
+    <PropertyColumn Property="produto => produto.PrecoBase" Title="Preço Base" Sortable="true" Format="C" />
+    <PropertyColumn Property="produto => produto.PercentagemLucro" Title="Lucro %" Sortable="true" />
+    <PropertyColumn Property="produto => produto.Preco" Title="Preço Final" Sortable="true" Format="C" />
+    <PropertyColumn Property="produto => produto.Stock" Title="Stock" Sortable="true" />
+    
+    <TemplateColumn Title="Estado">
+        <span class="badge @(context.Ativo ? "bg-success" : "bg-warning")">
+            @(context.Ativo ? "Ativo" : "Inativo")
+        </span>
+    </TemplateColumn>
+
+    <TemplateColumn Context="produto" Title="Ações">
+        <a title="Detalhes" href="@($"produtos/details?id={produto.Id}")">
+            <img title="Ver" src="/img/detailsicon.png" style="height:30px" />
+        </a>
+        <a title="Editar" href="@($"produtos/edit?id={produto.Id}")">
+            <img title="Editar" src="/img/editicon.png" style="height:30px" />
+        </a>
+        <a title="Apagar" href="@($"produtos/delete?id={produto.Id}")">
+            <img title="Apagar" src="/img/deleteicon.png" style="height:30px" />
+        </a>
+    </TemplateColumn>
+</QuickGrid>
+
+<div class="page-size-chooser">
+    Produtos por página:
+    <select @bind="@pagination.ItemsPerPage">
+        <option>5</option>
+        <option>10</option>
+        <option>15</option>
+    </select>
+</div>
+<div class="card-footer"><Paginator State="@pagination" /></div>
+
+@code {
+    QuickGrid<Produto>? refgrid;
+    PaginationState pagination = new PaginationState { ItemsPerPage = 5 };
+    
+    List<Produto> produtosList = new();
+    IQueryable<Produto>? produtosQueryable;
+    
+    private ApplicationDbContext context = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = DbFactory.CreateDbContext();
+        produtosQueryable = context.Produtos
+            .Include(p => p.categoria)
+            .Include(p => p.modoentrega)
+            .OrderBy(p => p.Nome);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (context is not null)
+        {
+            await context.DisposeAsync();
+        }
+    }
+}

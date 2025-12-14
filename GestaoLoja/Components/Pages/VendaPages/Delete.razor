@@ -1,0 +1,96 @@
+﻿@page "/venda/delete"
+
+@attribute [Authorize(Roles = "Administrador, Funcionario")]
+
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using GestaoLoja.Entities
+@using GestaoLoja.Data
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IDbContextFactory<GestaoLoja.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Apagar Registo Venda</PageTitle>
+
+<h1>Rejeitar Venda</h1>
+
+<h3>Tem a certeza de que quer rejeitar esta venda?</h3>
+
+<div>
+    <h4>Encomenda</h4>
+    <hr />
+    @if (encomenda is null)
+    {
+        <p><em>Carregando...</em></p>
+    }
+    else
+    {
+        <dl class="row">
+            <dt class="col-sm-2">Nº Encomenda</dt>
+            <dd class="col-sm-10">@encomenda.Id</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Nome Cliente</dt>
+            <dd class="col-sm-10">@encomenda.ClienteId</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Data Encomenda</dt>
+            <dd class="col-sm-10">@encomenda.DataCriacao</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Estado Encomenda</dt>
+            <dd class="col-sm-10">@encomenda.EstadoEncomenda</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Estado Pagamento</dt>
+            <dd class="col-sm-10">@encomenda.EstadoPagamento</dd>
+        </dl>
+        <EditForm method="post" Model="encomenda" OnValidSubmit="DeleteEncomenda" FormName="delete" Enhance>
+            <button type="submit" class="btn btn-danger" disabled="@(encomenda is null)" onclick="return confirm('Tem a certeza que deseja apagar esta encomenda?')"><img title="Apagar" src="/img/deleteicon.png" style="height:30px" /></button> |
+            <a href="/venda" type="button" class="btn btn-outline-secondary"><img title="Recuar" src="/img/backicon.png" style="height:30px" /></a>
+        </EditForm>
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger mt-3">@errorMessage</div>
+        }
+    }
+</div>
+
+
+@code {
+    Encomendas? encomenda;
+    List<Pedidos>? pedidos;
+    string? errorMessage;
+
+    [SupplyParameterFromQuery]
+    public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        encomenda = await context.Encomendas.FirstOrDefaultAsync(e => e.Id == Id);
+        pedidos = await context.Pedidos.Where(p => p.EncomendaId == Id).ToListAsync();
+
+        if (encomenda is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    public async Task DeleteEncomenda()
+    {
+        using var context = DbFactory.CreateDbContext();
+        if (encomenda is not null)
+        {
+            // Remover pedidos associados
+            context.Pedidos.RemoveRange(pedidos);
+
+            // Remover a encomenda
+            context.Encomendas.Remove(encomenda);
+            await context.SaveChangesAsync();
+        }
+
+        NavigationManager.NavigateTo("/venda");
+    }
+}

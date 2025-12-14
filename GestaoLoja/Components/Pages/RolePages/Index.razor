@@ -1,0 +1,106 @@
+﻿@page "/roles"
+
+@attribute [Authorize(Roles = "Administrador, Funcionario")]
+
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using GestaoLoja.Entities
+@using GestaoLoja.Data
+@using Microsoft.AspNetCore.Identity
+
+@rendermode InteractiveServer
+
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+
+@implements IAsyncDisposable
+
+<PageTitle>Gerir Roles</PageTitle>
+
+<h1>Lista de Utilizadores</h1>
+
+<QuickGrid Items="@utilizadoresQueryable" @ref="refgrid" Pagination="@pagination">
+    <PropertyColumn Property="utilizador => utilizador.UserName" Title="Nome de Utilizador" Sortable="true" />
+    <PropertyColumn Property="utilizador => utilizador.Email" Title="Email" Sortable="true" />
+    <PropertyColumn Property="utilizador => utilizador.Role" Title="Role" Sortable="true" />
+
+    <TemplateColumn Context="utilizador">
+        @if (utilizador.Role == "Administrador")
+        {
+            <img title="Editar" src="/img/editicon.png" style="height:30px; opacity:0.5;" />
+        }
+        else
+        {
+            <a title="Editar" href="@($"roles/edit?id={utilizador.Id}")"><img title="Editar" src="/img/editicon.png" style="height:30px" /></a>
+        }
+        
+    </TemplateColumn>
+</QuickGrid>
+
+<div class="page-size-chooser">
+    Utilizadores:
+    <select @bind="@pagination.ItemsPerPage">
+        <option>5</option>
+        <option>10</option>
+        <option>15</option>
+    </select>
+</div>
+<div class="card-footer"><Paginator State="@pagination" /></div>
+
+@code {
+    QuickGrid<ApplicationUser>? refgrid;
+
+    // Pagination
+    PaginationState pagination = new PaginationState { ItemsPerPage = 5 };
+
+    List<ApplicationUser> utilizadoresList = new();
+    IQueryable<ApplicationUser>? utilizadoresQueryable;
+
+    private ApplicationDbContext context = default!;
+
+    protected override async void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+        utilizadoresQueryable = Enumerable.Empty<ApplicationUser>().AsQueryable();
+
+        CarregaUtilizadores();
+        ConvertListToQueryable();
+    }
+
+    private IList<ApplicationUser> CarregaUtilizadores()
+    {
+        var usersWithRoles = from user in context.Users
+                             join userRole in context.UserRoles on user.Id equals userRole.UserId
+                             join role in context.Roles on userRole.RoleId equals role.Id
+                             select new ApplicationUser
+                                 {
+                                     Id = user.Id,
+                                     UserName = user.UserName,
+                                     Email = user.Email,
+                                     PhoneNumber = user.PhoneNumber,
+                                     Role = role.Name
+                                 };
+
+        utilizadoresList = usersWithRoles.OrderBy(u => u.UserName).ToList();
+        return utilizadoresList;
+    }
+
+    // Load data from List to the Queryable container
+    private void ConvertListToQueryable()
+    {
+        utilizadoresQueryable = utilizadoresList.AsQueryable();
+    }
+
+    // Pesquisa Utilizador
+    void PesquisaUtilizador(ChangeEventArgs e)
+    {
+        if (!string.IsNullOrEmpty(e.Value!.ToString()))
+        {
+            var result = utilizadoresQueryable.Where(u => u.UserName!.Contains(e.Value!.ToString()!,
+            StringComparison.CurrentCultureIgnoreCase)).ToList();
+            utilizadoresQueryable = result.AsQueryable();
+        }
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

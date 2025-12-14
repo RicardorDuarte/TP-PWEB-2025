@@ -1,0 +1,161 @@
+﻿@page "/venda"
+
+@attribute [Authorize(Roles = "Administrador, Funcionario")]
+
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using GestaoLoja.Entities
+@using GestaoLoja.Data
+@using Microsoft.AspNetCore.Identity
+
+@inject ApplicationDbContext _context
+
+<PageTitle>Gestão de Vendas</PageTitle>
+
+@if (pedidos == null || encomendas == null || produtos == null)
+{
+    <p>Carregando...</p>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th colspan="6" class="text-center">Encomenda</th>
+                <th colspan="3" class="text-center">Pedidos</th>
+            </tr>
+            <tr>
+                <th>Ações</th>
+                <th>Nº Encomenda</th>
+                <th>Nome Cliente</th>
+                <th>Data</th>
+                <th>Estado Encomenda</th>
+                <th>Estado Pagamento</th>
+                <th>Preço Total</th>
+                <th>Produto</th>
+                <th>Quantidade</th>
+                <th>Preço Unitário</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var encomenda in encomendas)
+            {
+                var pedidosDaEncomenda = pedidos.Where(p => p.EncomendaId == encomenda.Id).ToList();
+                bool primeiraLinha = true;
+
+                if (pedidosDaEncomenda.Any())
+                {
+                    foreach (var pedido in pedidosDaEncomenda)
+                    {
+                        <tr>
+                            @if (primeiraLinha)
+                            {
+                                <td rowspan="@pedidosDaEncomenda.Count" style="display:flex; flex-direction: column; align-items: center;">
+                                    <a title="Aceitar Venda" href="@($"venda/edit?id={encomenda.Id}")"
+                                       class="btn-action"
+                                       disabled="@(encomenda.EstadoEncomenda == "Expedido" && encomenda.EstadoPagamento == "Pago")">
+                                        <img title="Aceitar Venda" src="/img/icochecado.png" />
+                                    </a>
+                                    <a title="Rejeitar Venda" href="@($"venda/delete?id={encomenda.Id}")"
+                                       class="btn-action"
+                                       disabled="@(encomenda.EstadoEncomenda == "Expedido" && encomenda.EstadoPagamento == "Pago")">
+                                        <img title="Rejeitar Venda" src="/img/minus.png" />
+                                    </a>
+                                </td>
+                                <td>@encomenda.Id</td>
+                                <td>@encomenda.ClienteId</td>
+                                <td>@encomenda.DataCriacao</td>
+                                <td>@encomenda.EstadoEncomenda</td>
+                                <td>@encomenda.EstadoPagamento</td>
+                                <td rowspan="@pedidosDaEncomenda.Count" style="font-weight: bold; color:cornflowerblue; vertical-align: middle;">
+                                    @string.Format("{0:C}", encomenda.ValorTotal)
+                                </td>
+                                primeiraLinha = false;
+                            }   
+                            else
+                            {
+                                <td colspan="6"></td>
+                            }
+                            <td>@produtoNomes[pedido.ProdutoId]</td>
+                            <td>@pedido.Quantidade</td>
+                            <td>@string.Format("{0:C}", pedido.PrecoUnitario)</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td rowspan="@pedidosDaEncomenda.Count" style="display:flex; flex-direction: column; align-items: center;">
+                            <a title="Aceitar Venda" href="@($"venda/edit?id={encomenda.Id}")"
+                               class="btn-action"
+                               disabled="@(encomenda.EstadoEncomenda == "Expedido" && encomenda.EstadoPagamento == "Pago")">
+                                <img title="Aceitar Venda" src="/img/btnAceite.png" />
+                            </a>
+                            <a title="Rejeitar Venda" href="@($"venda/delete?id={encomenda.Id}")"
+                               class="btn-action"
+                               disabled="@(encomenda.EstadoEncomenda == "Expedido" && encomenda.EstadoPagamento == "Pago")">
+                                <img title="Rejeitar Venda" src="/img/btnRejeitado.png" />
+                            </a>
+                        </td>
+                        <td>@encomenda.Id</td>
+                        <td>@encomenda.ClienteId</td>
+                        <td>@encomenda.DataCriacao</td>
+                        <td>@encomenda.EstadoEncomenda</td>
+                        <td>@encomenda.EstadoPagamento</td>
+                        <td style="font-weight: bold; color:cornflowerblue">@string.Format("{0:C}", encomenda.ValorTotal)</td>
+                        <td colspan="3" class="text-center text-muted">Nenhum pedido encontrado</td>
+                    </tr>
+                }
+                <tr>
+                    <td colspan="10" class="text-center">
+                        <hr />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+}
+
+<style>
+    .table-bordered {
+        font-size: 12px; 
+    }
+
+    .table-bordered th,
+    .table-bordered td {
+        padding: 5px;
+        vertical-align: middle;
+        text-align: center; 
+    }
+
+    .table-bordered img {
+        height: 20px; 
+    }
+
+    .table-bordered th {
+        font-weight: bold;
+    }
+
+    .btn-action[disabled] {
+        pointer-events: none; /* Desativa cliques */
+        opacity: 0.5; /* Visualmente desativado */
+    }
+</style>
+
+@code {
+    private List<Pedidos> pedidos;
+    private List<Encomendas> encomendas;
+    private List<Produto> produtos;
+    private Dictionary<int, string> produtoNomes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        pedidos = await _context.Pedidos.ToListAsync();
+        encomendas = await _context.Encomendas.ToListAsync();
+        produtos = await _context.Produtos.ToListAsync();
+
+        produtoNomes = produtos.ToDictionary(p => p.Id, p => p.Nome);
+    }
+}

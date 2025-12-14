@@ -1,0 +1,127 @@
+﻿@page "/roles/edit"
+
+@attribute [Authorize(Roles = "Administrador, Funcionario")]
+
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using GestaoLoja.Entities
+@using GestaoLoja.Data
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject RoleManager<IdentityRole> RoleManager
+@inject IDbContextFactory<GestaoLoja.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Editar Utilizador</PageTitle>
+
+<h1>Editar Estado do Utilizador</h1>
+
+<h4>Utilizador</h4>
+<hr />
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+@if (utilizador is null)
+{
+    <p><em>Carregando...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="utilizador" OnValidSubmit="UpdateUtilizadorRole" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="utilizador.Id" value="@utilizador.Id" />
+
+                <div class="mb-3">
+                    <label for="role" class="form-label">Role:</label>
+                    <InputSelect id="role" @bind-Value="utilizador.Role" class="form-control">
+                        <option value="" disabled selected>Selecione uma role</option>
+                        <option value="Funcionario">Funcionario</option>
+                        <option value="Cliente">Cliente</option>
+                    </InputSelect>
+                    <ValidationMessage For="() => utilizador.Role" class="text-danger" />
+                </div>
+
+                <button type="submit" class="btn btn-primary"><img title="Gravar" src="/img/saveicon.png" style="height:30px" /></button>
+                <a href="/roles" type="button" class="btn btn-outline-secondary"><img title="Recuar" src="/img/backicon.png" style="height:30px" /></a>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [SupplyParameterFromQuery]
+    public string Id { get; set; } = string.Empty;
+
+    [SupplyParameterFromForm]
+    public ApplicationUser? utilizador { get; set; }
+
+    private string? errorMessage = null;
+
+    private string? currentUserId = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+        // Carregar o utilizador atual autenticado
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        currentUserId = authState.User.FindFirst(c => c.Type == "sub")?.Value;
+
+        utilizador ??= await context.Users.AsNoTracking().FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (utilizador is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    public async Task UpdateUtilizadorRole()
+    {
+        if (utilizador is null)
+        {
+            errorMessage = "Utilizador não encontrado.";
+            return;
+        }
+
+        // Obter o ID do usuário logado
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userLog= authState.User;
+        var userId = UserManager.GetUserId(userLog);
+
+        // Impedir alteração da própria role
+        if (userId == Id)
+        {
+            errorMessage = "Você não pode alterar a sua própria role.";
+            return;
+        }
+
+        var user = await UserManager.FindByIdAsync(utilizador.Id);
+        if (user is null)
+        {
+            errorMessage = "Utilizador não encontrado.";
+            return;
+        }
+
+        var currentRoles = await UserManager.GetRolesAsync(user);
+        var removeResult = await UserManager.RemoveFromRolesAsync(user, currentRoles);
+        if (!removeResult.Succeeded)
+        {
+            errorMessage = "Erro ao remover roles atuais.";
+            return;
+        }
+
+        var addResult = await UserManager.AddToRoleAsync(user, utilizador.Role);
+        if (!addResult.Succeeded)
+        {
+            errorMessage = "Erro ao adicionar nova role.";
+            return;
+        }
+
+        NavigationManager.NavigateTo("/roles");
+    }
+}

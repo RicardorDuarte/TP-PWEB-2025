@@ -1,0 +1,258 @@
+﻿@page "/admin/seed-test-data"
+
+@attribute [Authorize(Roles = "Administrador")]
+
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using GestaoLoja.Entities
+@using GestaoLoja.Data
+@using Microsoft.AspNetCore.Identity
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+
+<PageTitle>Gerar Dados de Teste</PageTitle>
+
+<div class="container mt-4">
+    <h1>Gerar Dados de Teste</h1>
+    <hr />
+
+    @if (!string.IsNullOrEmpty(mensagem))
+    {
+        <div class="alert @(erro ? "alert-danger" : "alert-success")" role="alert">
+            @mensagem
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-header">
+            <h4>Criar Encomendas de Teste</h4>
+        </div>
+        <div class="card-body">
+            <EditForm Model="testDataConfig" OnValidSubmit="GerarDadosTeste" FormName="seedTestDataForm">
+                <DataAnnotationsValidator />
+                
+                <div class="mb-3">
+                    <label for="numEncomendas" class="form-label">Número de Encomendas:</label>
+                    <InputNumber id="numEncomendas" @bind-Value="testDataConfig.NumeroEncomendas" class="form-control" min="1" max="50" />
+                    <small class="form-text text-muted">Entre 1 e 50 encomendas</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="minProdutos" class="form-label">Mínimo de Produtos por Encomenda:</label>
+                    <InputNumber id="minProdutos" @bind-Value="testDataConfig.MinProdutosPorEncomenda" class="form-control" min="1" max="10" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="maxProdutos" class="form-label">Máximo de Produtos por Encomenda:</label>
+                    <InputNumber id="maxProdutos" @bind-Value="testDataConfig.MaxProdutosPorEncomenda" class="form-control" min="1" max="10" />
+                </div>
+
+                <div class="mb-3 form-check">
+                    <InputCheckbox id="limparDados" @bind-Value="testDataConfig.LimparDadosAntigos" class="form-check-input" />
+                    <label for="limparDados" class="form-check-label">Limpar encomendas de teste anteriores</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary" disabled="@processando">
+                    @if (processando)
+                    {
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span> Gerando...</span>
+                    }
+                    else
+                    {
+                        <span>Gerar Dados de Teste</span>
+                    }
+                </button>
+                <a href="/" class="btn btn-secondary">Voltar</a>
+            </EditForm>
+        </div>
+    </div>
+
+    @if (encomendasCriadas.Any())
+    {
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5>Encomendas Criadas (@encomendasCriadas.Count)</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Data</th>
+                                <th>Total</th>
+                                <th>Nº Produtos</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var enc in encomendasCriadas)
+                            {
+                                <tr>
+                                    <td>@enc.Id</td>
+                                    <td>@enc.ClienteId</td>
+                                    <td>@enc.DataCriacao?.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@enc.ValorTotal.ToString("C")</td>
+                                    <td>@enc.Pedidos.Count</td>
+                                    <td>
+                                        <span class="badge bg-warning">@enc.EstadoEncomenda</span>
+                                        <span class="badge bg-info">@enc.EstadoPagamento</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <a href="/venda" class="btn btn-success">Ver Vendas</a>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private TestDataConfig testDataConfig = new TestDataConfig();
+    private string? mensagem;
+    private bool erro = false;
+    private bool processando = false;
+    private List<Encomendas> encomendasCriadas = new();
+
+    private async Task GerarDadosTeste()
+    {
+        processando = true;
+        mensagem = null;
+        erro = false;
+        encomendasCriadas.Clear();
+
+        try
+        {
+            using var context = DbFactory.CreateDbContext();
+
+            // Limpar dados antigos se solicitado
+            if (testDataConfig.LimparDadosAntigos)
+            {
+                var encomendasAnteriores = await context.Encomendas
+                    .Where(e => e.EstadoEncomenda == "Pendente")
+                    .ToListAsync();
+                
+                var pedidosAnteriores = await context.Pedidos
+                    .Where(p => encomendasAnteriores.Select(e => e.Id).Contains(p.EncomendaId ?? 0))
+                    .ToListAsync();
+
+                context.Pedidos.RemoveRange(pedidosAnteriores);
+                context.Encomendas.RemoveRange(encomendasAnteriores);
+                await context.SaveChangesAsync();
+            }
+
+            // Obter produtos ativos
+            var produtos = await context.Produtos
+                .Where(p => p.Ativo && p.Stock > 0)
+                .ToListAsync();
+
+            if (!produtos.Any())
+            {
+                erro = true;
+                mensagem = "Não existem produtos ativos com stock disponível. Por favor, crie e ative produtos primeiro.";
+                return;
+            }
+
+            // Obter usuários
+            var users = await context.Users.Take(10).ToListAsync();
+            if (!users.Any())
+            {
+                erro = true;
+                mensagem = "Não existem utilizadores no sistema.";
+                return;
+            }
+
+            var random = new Random();
+            var moradas = new[]
+            {
+                "Rua das Flores, 123, Lisboa",
+                "Avenida da Liberdade, 456, Porto",
+                "Praça da República, 789, Coimbra",
+                "Rua do Comércio, 321, Braga",
+                "Avenida Central, 654, Faro"
+            };
+
+            // Criar encomendas
+            for (int i = 0; i < testDataConfig.NumeroEncomendas; i++)
+            {
+                var cliente = users[random.Next(users.Count)];
+                var encomenda = new Encomendas
+                {
+                    ClienteId = cliente.Email,
+                    MoradaEntrega = moradas[random.Next(moradas.Length)],
+                    DataCriacao = DateTime.Now.AddDays(-random.Next(30)),
+                    EstadoEncomenda = "Pendente",
+                    EstadoPagamento = "Pendente",
+                    ValorTotal = 0
+                };
+
+                context.Encomendas.Add(encomenda);
+                await context.SaveChangesAsync(); // Salvar para obter o ID
+
+                // Criar pedidos para esta encomenda
+                int numProdutos = random.Next(
+                    testDataConfig.MinProdutosPorEncomenda,
+                    testDataConfig.MaxProdutosPorEncomenda + 1
+                );
+
+                decimal valorTotal = 0;
+                var pedidosLista = new List<Pedidos>();
+
+                for (int j = 0; j < numProdutos; j++)
+                {
+                    var produto = produtos[random.Next(produtos.Count)];
+                    int quantidade = random.Next(1, 6);
+                    decimal precoUnitario = produto.Preco;
+                    decimal valorPedido = precoUnitario * quantidade;
+
+                    var pedido = new Pedidos
+                    {
+                        EncomendaId = encomenda.Id,
+                        IdUser = cliente.Id,
+                        ProdutoId = produto.Id,
+                        Quantidade = quantidade,
+                        PrecoUnitario = precoUnitario,
+                        ValorTotal = valorPedido
+                    };
+
+                    pedidosLista.Add(pedido);
+                    context.Pedidos.Add(pedido);
+                    valorTotal += valorPedido;
+                }
+
+                // Atualizar valor total da encomenda
+                encomenda.ValorTotal = valorTotal;
+                encomenda.Pedidos = pedidosLista;
+                context.Encomendas.Update(encomenda);
+                await context.SaveChangesAsync();
+
+                encomendasCriadas.Add(encomenda);
+            }
+
+            mensagem = $"✓ {testDataConfig.NumeroEncomendas} encomendas criadas com sucesso!";
+            erro = false;
+        }
+        catch (Exception ex)
+        {
+            erro = true;
+            mensagem = $"Erro ao gerar dados: {ex.Message}";
+        }
+        finally
+        {
+            processando = false;
+        }
+    }
+
+    public class TestDataConfig
+    {
+        public int NumeroEncomendas { get; set; } = 10;
+        public int MinProdutosPorEncomenda { get; set; } = 1;
+        public int MaxProdutosPorEncomenda { get; set; } = 5;
+        public bool LimparDadosAntigos { get; set; } = false;
+    }
+}
