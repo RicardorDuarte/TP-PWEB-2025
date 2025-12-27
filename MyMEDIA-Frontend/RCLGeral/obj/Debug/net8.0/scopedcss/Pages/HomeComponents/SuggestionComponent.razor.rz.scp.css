@@ -1,0 +1,26 @@
+.suggestion[b-rufqr7a242] {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background-color: white;
+    margin: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+    .suggestion img[b-rufqr7a242] {
+        width: 50px;
+        margin-right: 20px;
+    }
+
+    .suggestion div[b-rufqr7a242] {
+        flex-grow: 1;
+    }
+
+    .suggestion .price[b-rufqr7a242] {
+        font-weight: bold;
+    }
+
+    .suggestion:hover[b-rufqr7a242]{
+        cursor:pointer;
+    }

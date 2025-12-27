@@ -1,0 +1,42 @@
+.notification-overlay[b-hkqb1uebt1] {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.notification[b-hkqb1uebt1] {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+    max-width: 80%;
+    width: 600px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.btn[b-hkqb1uebt1] {
+    border-radius: 5px;
+    background-color: #A54258;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+.btn-close[b-hkqb1uebt1] {
+    margin-top: 10px;
+}
+
+.btn:hover[b-hkqb1uebt1] {
+    background-color: #8B3E4E;
+}

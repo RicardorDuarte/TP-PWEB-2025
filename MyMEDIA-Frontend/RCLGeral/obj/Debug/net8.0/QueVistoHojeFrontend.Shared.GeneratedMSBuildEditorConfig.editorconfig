@@ -1,0 +1,115 @@
+is_global = true
+build_property.TargetFramework = net8.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = 
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows,browser
+build_property.RootNamespace = QueVistoHojeFrontend.Shared
+build_property.RootNamespace = QueVistoHojeFrontend.Shared
+build_property.ProjectDir = C:\Users\RD-Desktop\source\repos\pweb-margarida\TP_PWEB_2425-master\QueVistoHojeFrontend\QueVistoHojeFrontend.Shared\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.RazorLangVersion = 8.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = C:\Users\RD-Desktop\source\repos\pweb-margarida\TP_PWEB_2425-master\QueVistoHojeFrontend\QueVistoHojeFrontend.Shared
+build_property._RazorSourceGeneratorDebug = 
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Pages/HomeComponents/Categories/CategoriasSliderComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZUNvbXBvbmVudHNcQ2F0ZWdvcmllc1xDYXRlZ29yaWFzU2xpZGVyQ29tcG9uZW50LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Pages/HomeComponents/Products/ProductsSliderComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZUNvbXBvbmVudHNcUHJvZHVjdHNcUHJvZHVjdHNTbGlkZXJDb21wb25lbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Routes.razor]
+build_metadata.AdditionalFiles.TargetPath = Um91dGVzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Layout/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XE1haW5MYXlvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-bafpirt52r
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Layout/NavBarComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XE5hdkJhckNvbXBvbmVudC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-s0gm37b5nc
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Pages/CartComponents/CartComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2FydENvbXBvbmVudHNcQ2FydENvbXBvbmVudC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-bgb92umyvl
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Pages/CartComponents/CheckoutComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2FydENvbXBvbmVudHNcQ2hlY2tvdXRDb21wb25lbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-7kc7enhbv9
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Pages/CartComponents/PaymentComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2FydENvbXBvbmVudHNcUGF5bWVudENvbXBvbmVudC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-quftjoevfj
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Pages/HomeComponents/Categories/CategoriasSlider.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZUNvbXBvbmVudHNcQ2F0ZWdvcmllc1xDYXRlZ29yaWFzU2xpZGVyLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-q11acqey3k
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Pages/HomeComponents/HomePageComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZUNvbXBvbmVudHNcSG9tZVBhZ2VDb21wb25lbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-ahwkw71mva
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Pages/HomeComponents/Products/ProductsSlider.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZUNvbXBvbmVudHNcUHJvZHVjdHNcUHJvZHVjdHNTbGlkZXIucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-4x88vb2x8w
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Pages/HomeComponents/Products/ProdutosFilterComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZUNvbXBvbmVudHNcUHJvZHVjdHNcUHJvZHV0b3NGaWx0ZXJDb21wb25lbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-dmq7e0xyfh
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Pages/HomeComponents/SuggestionComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZUNvbXBvbmVudHNcU3VnZ2VzdGlvbkNvbXBvbmVudC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-rufqr7a242
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Pages/Notification.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTm90aWZpY2F0aW9uLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-efaglaxd1n
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Pages/OrdersComponents/OrderDetailsComponents/OrderDetails.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcT3JkZXJzQ29tcG9uZW50c1xPcmRlckRldGFpbHNDb21wb25lbnRzXE9yZGVyRGV0YWlscy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-opf7ki7r2k
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Pages/OrdersComponents/OrderDetailsComponents/OrderDetailsPayment.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcT3JkZXJzQ29tcG9uZW50c1xPcmRlckRldGFpbHNDb21wb25lbnRzXE9yZGVyRGV0YWlsc1BheW1lbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-ztn9y77cku
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Pages/OrdersComponents/OrderInformationComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcT3JkZXJzQ29tcG9uZW50c1xPcmRlckluZm9ybWF0aW9uQ29tcG9uZW50LnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-hkqb1uebt1
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Pages/OrdersComponents/OrdersHistoric.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcT3JkZXJzQ29tcG9uZW50c1xPcmRlcnNIaXN0b3JpYy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-uv0sg0ob6q
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Pages/ProductComponents/ProductComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvZHVjdENvbXBvbmVudHNcUHJvZHVjdENvbXBvbmVudC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-m5h8404ku5
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Pages/SobreComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU29icmVDb21wb25lbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-ouj53fka8v
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Pages/UsersComponents/LoginComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXNlcnNDb21wb25lbnRzXExvZ2luQ29tcG9uZW50LnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-yqq3adh7yx
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Pages/UsersComponents/ProfileComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXNlcnNDb21wb25lbnRzXFByb2ZpbGVDb21wb25lbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-7c19lywzgv
+
+[C:/Users/RD-Desktop/source/repos/pweb-margarida/TP_PWEB_2425-master/QueVistoHojeFrontend/QueVistoHojeFrontend.Shared/Pages/UsersComponents/RegisterComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXNlcnNDb21wb25lbnRzXFJlZ2lzdGVyQ29tcG9uZW50LnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-yda9vx2bpx

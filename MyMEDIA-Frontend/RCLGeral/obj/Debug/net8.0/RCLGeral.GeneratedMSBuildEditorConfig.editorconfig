@@ -1,0 +1,125 @@
+is_global = true
+build_property.TargetFramework = net8.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = 
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = RCLGeral
+build_property.RootNamespace = RCLGeral
+build_property.ProjectDir = C:\Users\RD-Desktop\source\repos\MyMEDIA-Frontend\RCLGeral\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.RazorLangVersion = 8.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = C:\Users\RD-Desktop\source\repos\MyMEDIA-Frontend\RCLGeral
+build_property._RazorSourceGeneratorDebug = 
+build_property.EffectiveAnalysisLevelStyle = 8.0
+build_property.EnableCodeStyleSeverity = 
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Pages/HomeComponents/Categories/CategoriasSliderComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZUNvbXBvbmVudHNcQ2F0ZWdvcmllc1xDYXRlZ29yaWFzU2xpZGVyQ29tcG9uZW50LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Pages/HomeComponents/Products/ProductsSliderComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZUNvbXBvbmVudHNcUHJvZHVjdHNcUHJvZHVjdHNTbGlkZXJDb21wb25lbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Pages/Weather.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcV2VhdGhlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Routes.razor]
+build_metadata.AdditionalFiles.TargetPath = Um91dGVzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Layout/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XE1haW5MYXlvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-eoodw88hkx
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Layout/NavBarComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XE5hdkJhckNvbXBvbmVudC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-9gc5fjzyhx
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Pages/CartComponents/CartComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2FydENvbXBvbmVudHNcQ2FydENvbXBvbmVudC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-2x46gtjcwu
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Pages/CartComponents/CheckoutComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2FydENvbXBvbmVudHNcQ2hlY2tvdXRDb21wb25lbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-xikfmq9ss0
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Pages/CartComponents/PaymentComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2FydENvbXBvbmVudHNcUGF5bWVudENvbXBvbmVudC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-7tm539uk2x
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Pages/HomeComponents/Categories/CategoriasSlider.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZUNvbXBvbmVudHNcQ2F0ZWdvcmllc1xDYXRlZ29yaWFzU2xpZGVyLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-8e2a8topab
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Pages/HomeComponents/HomePageComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZUNvbXBvbmVudHNcSG9tZVBhZ2VDb21wb25lbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-7dhj5c11ii
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Pages/HomeComponents/Products/ProductsSlider.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZUNvbXBvbmVudHNcUHJvZHVjdHNcUHJvZHVjdHNTbGlkZXIucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-65j7mt7o4t
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Pages/HomeComponents/Products/ProdutosFilterComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZUNvbXBvbmVudHNcUHJvZHVjdHNcUHJvZHV0b3NGaWx0ZXJDb21wb25lbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-8mrprtfcj7
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Pages/HomeComponents/SuggestionComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZUNvbXBvbmVudHNcU3VnZ2VzdGlvbkNvbXBvbmVudC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-eikhdmgzcu
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Pages/Notification.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTm90aWZpY2F0aW9uLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-ei0s6tx1aw
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Pages/OrdersComponents/OrderDetailsComponents/OrderDetails.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcT3JkZXJzQ29tcG9uZW50c1xPcmRlckRldGFpbHNDb21wb25lbnRzXE9yZGVyRGV0YWlscy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-nqfuafeamc
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Pages/OrdersComponents/OrderDetailsComponents/OrderDetailsPayment.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcT3JkZXJzQ29tcG9uZW50c1xPcmRlckRldGFpbHNDb21wb25lbnRzXE9yZGVyRGV0YWlsc1BheW1lbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-7ed031gxnc
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Pages/OrdersComponents/OrderInformationComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcT3JkZXJzQ29tcG9uZW50c1xPcmRlckluZm9ybWF0aW9uQ29tcG9uZW50LnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-0o04tz8lsd
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Pages/OrdersComponents/OrdersHistoric.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcT3JkZXJzQ29tcG9uZW50c1xPcmRlcnNIaXN0b3JpYy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-sao6k6044t
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Pages/ProductComponents/ProductComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvZHVjdENvbXBvbmVudHNcUHJvZHVjdENvbXBvbmVudC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-wwt6hx68i0
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Pages/SobreComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU29icmVDb21wb25lbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-8mdf55z95k
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Pages/UsersComponents/LoginComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXNlcnNDb21wb25lbnRzXExvZ2luQ29tcG9uZW50LnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-2rb9q4uc5i
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Pages/UsersComponents/ProfileComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXNlcnNDb21wb25lbnRzXFByb2ZpbGVDb21wb25lbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-hh0vw83qyh
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Pages/UsersComponents/RegisterComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXNlcnNDb21wb25lbnRzXFJlZ2lzdGVyQ29tcG9uZW50LnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-ppb0leqs8g
+
+[C:/Users/RD-Desktop/source/repos/MyMEDIA-Frontend/RCLGeral/Areas/MyFeature/Pages/Page1.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXNcTXlGZWF0dXJlXFBhZ2VzXFBhZ2UxLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
