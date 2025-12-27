@@ -1,0 +1,89 @@
+﻿.product-details {
+    width: 100%;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+
+    /*box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);*/
+
+    display: flex;
+}
+
+.product-details img {
+    width: 300px;           /* Define uma largura fixa para a imagem */
+    height: auto;           /* Mantém a proporção da imagem */
+    border-radius: 10px;
+}
+
+.product-info {
+    display: flex;
+    flex-direction: column;         /* Organiza o texto verticalmente*/
+    justify-content: space-evenly;        /* Centraliza verticalmente */
+    padding-left: 20px;             /* Espaço entre a imagem e o texto */
+}
+
+.product-buttons {
+    display: flex;
+    gap: 20px;                      /* Espaçamento entre os botões */
+}
+
+.product-info h2 {
+    font-size: 24px;
+}
+
+.product-info p {
+    font-size: 18px;
+    margin: 10px 0;
+}
+
+.product-buttons button {
+    background-color: #007bff;      /* Cor do botão */
+    color: white;
+    border: none;
+    border-radius: 5px;
+
+    padding: 10px 15px;
+    font-size: 16px;
+
+    cursor: pointer;
+    transition: background-color 0.3s ease;     /* Efeito de transição */
+}
+
+.product-buttons button:hover {
+    background-color: #0056b3;              /* Cor do botão ao passar o mouse */
+}
+
+@media (max-width: 768px) {
+    .product-details {
+        flex-direction: column;                 /* Muda para coluna em telas menores */
+        align-items: center;                    /* Centraliza os itens */
+        padding: 15px;                          /* Reduz o padding em telas menores */
+    }
+
+    .product-details img {
+        width: 100%;                /* A imagem ocupa toda a largura disponível */
+        max-width: none;            /* Remove a largura fixa da imagem em telas pequenas */
+        margin-bottom: 15px;        /* Espaço abaixo da imagem */
+    }
+
+    .product-info {
+        align-items: center;            /* Centraliza o texto em telas menores */
+        text-align: center;             /* Centraliza o texto no componente */
+        padding-left: 0;                /* Remove o espaço à esquerda em telas menores */
+    }
+
+    .product-info h2 {
+        font-size: 20px;            /* Ajusta o tamanho da fonte do título */
+    }
+
+    .product-info p {
+        font-size: 16px;            /* Ajusta o tamanho da fonte da descrição */
+    }
+
+    .product-buttons button {
+        width: 100%;                    /* Botões ocupam toda a largura disponível */
+        margin-top: 10px;               /* Espaço entre os botões */
+    }
+}

@@ -1,0 +1,60 @@
+﻿@page "/orders"
+
+@inject IApiServices ApiService
+@inject AuthStateService AuthStateService
+@inject NavigationManager NavigationManager
+
+<div class="encomendas-container">
+    <h2>Minhas Encomendas</h2>
+    @if (encomendas == null)
+    {
+        <p>Carregando encomendas...</p>
+    }
+    else if (!encomendas.Any())
+    {
+        <p>Nenhuma encomenda encontrada.</p>
+    }
+    else
+    {
+        <div class="encomendas-grid">
+            @foreach (var encomenda in encomendas)
+            {
+                <div class="encomenda-card">
+                    <div class="encomenda-header">
+                        <span class="encomenda-id">Encomenda #@encomenda.ID</span>
+                        <span class="encomenda-data">@encomenda.Data.ToShortDateString()</span>
+                    </div>
+                    <div class="encomenda-body">
+                        <p>Total: @encomenda.PrecoTotal.ToString("C")</p>
+                        <p>Pagamento: @encomenda.Pago</p>
+                    </div>
+                    <div class="encomenda-footer">
+                        <button class="btn-detalhes" @onclick="() => VerDetalhes(encomenda.ID)">Ver Detalhes</button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<Encomenda>? encomendas;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userEmail = AuthStateService.User.Email;
+
+        var response = await ApiService.GetEncomendas(userEmail);
+        if (response.Data != null){
+            encomendas = response.Data;
+        }
+        else{
+            Console.WriteLine(response.ErrorMessage);
+        }
+    }
+
+    private void VerDetalhes(int id)
+    {
+        NavigationManager.NavigateTo($"/orders/{id}");
+    }
+}

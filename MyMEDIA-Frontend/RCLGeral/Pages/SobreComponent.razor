@@ -1,0 +1,26 @@
+﻿@page "/about"
+@using SharedEntities;
+
+@inject NavigationManager NavigationManager
+
+<div class="contacto-container">
+    <div class="contacto-content">
+        <h2>Informações de Contacto</h2>
+
+        <div class="contacto-info">
+            <p><strong>Endereço:</strong> @AppConfig.enderecoHome</p>
+            <p><strong>Email:</strong> @AppConfig.mail</p>
+            <p><strong>Telefone:</strong> @AppConfig.telefone</p>
+        </div>
+
+        <div class="acoes">
+            <button class="btn-voltar" @onclick="Voltar">Comprar</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private void Voltar(){
+        NavigationManager.NavigateTo("/");
+    }
+}

@@ -1,0 +1,43 @@
+﻿.category-slider {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.slider-container {
+    display: flex;
+    gap: 20px;
+    padding: 10px;
+}
+
+.category-item {
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.category-item :hover{
+    cursor:pointer;
+}
+
+.category-item img {
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.category-item p {
+    margin-top: 5px;
+}
+
+.category-slider {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.slider-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    overflow-x: auto;
+    padding: 10px;
+}

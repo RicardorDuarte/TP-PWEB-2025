@@ -1,0 +1,101 @@
+﻿@page "/products/{id:int}"
+
+@inject NavigationManager NavigationManager
+@inject IApiServices ApiServices
+@inject CartService CartService
+    
+<PageTitle>Produto</PageTitle>
+<h2>Detalhes do Produto</h2>
+
+@if (produto != null)
+{
+    <div class="product-details">
+        <div>
+            <img alt="@produto.Nome" src="@produto.UrlImagem" width="300" height="300" />
+        </div>
+        <div class="product-info">
+            <h2>@produto.Nome</h2>
+            <p>Preço: @produto.Preco €</p>
+            <p>Detalhes: @produto.Detalhe</p>
+            <p>Em Stock: @produto.EmStock</p>
+            <div class="">
+                <button @onclick="AdicionarAoCarrinho">Adicionar ao Carrinho</button>
+                <button @onclick="Voltar">Voltar</button>
+            </div>
+        </div>
+    </div>
+
+    <Notification IsVisible="@showNotification" Message="@notificationMessage" NotificationType="@notificationType" OnClose="@CloseNotification" />
+}
+else
+{
+    <p>Carregando...</p>
+}
+
+@code {
+
+    [Parameter]
+    public int id { get; set; }
+
+    private Produto? produto;
+    private bool showNotification = false;
+    private string notificationMessage = "";
+    private string notificationType = "success";
+
+
+    protected override async Task OnParametersSetAsync(){
+        produto = await GetProdutoByIdAsync(id);
+    }
+
+    private void AdicionarAoCarrinho()
+    {
+        if (produto != null)
+        {
+            var cartItem = new CartItem
+            {
+                Produto = produto!,
+                Quantity = 1,
+                Price = produto.Preco,
+                Size = "S"
+            };
+
+            try{
+                CartService.AddItem(cartItem);
+                ShowNotification($"Produto {produto.Nome} adicionado ao carrinho com sucesso!", "success");
+            }
+            catch (Exception ex) {
+                ShowNotification($"Erro ao adicionar {produto.Nome} ao carrinho: {ex.Message}", "error");
+            }
+        }
+    }
+
+    private void ShowNotification(string message, string type) {
+        notificationMessage = message;
+        notificationType = type;
+        showNotification = true;
+        StateHasChanged();
+    }
+
+    private void CloseNotification() {
+        showNotification = false;
+        StateHasChanged();
+    }
+
+    private void Voltar()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+
+    private async Task<Produto> GetProdutoByIdAsync(int id)
+    {
+        try
+        {
+            return await ApiServices.GetProdutoById(id);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao obter produto: {ex.Message}");
+            return null;
+        }
+    }
+}

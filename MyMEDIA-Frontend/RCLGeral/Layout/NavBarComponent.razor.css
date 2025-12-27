@@ -1,0 +1,45 @@
+﻿.header {
+    background-color: #33472C;
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header .navbar-title h1 {
+    color: white;
+    margin: 0;
+    text-decoration: none;
+}
+
+.header .navbar-title ::deep a {
+    text-decoration: none;
+    color: white;
+}
+
+.header .navbar-title ::deep a:hover {
+    text-decoration: none;
+    color: white;
+}
+
+.header .nav {
+    display: flex;
+    align-items: center;
+}
+
+.header .nav ::deep .nav-link {
+    color: white;
+    margin-left: 20px;
+    text-decoration: none;
+}
+
+.header .nav ::deep .nav-link:hover {
+    text-decoration: underline;
+}
+
+.nav-icon {
+    width: 20px;
+    height: auto;
+    margin-right: 5px;
+}

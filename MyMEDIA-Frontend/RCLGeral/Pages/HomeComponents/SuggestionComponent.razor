@@ -1,0 +1,54 @@
+﻿<div class="suggestion" @onclick="() => OnProdutoClick(ProdutoSugerido?.ID ?? 0)">
+    @if (ProdutoSugerido != null)
+    {
+        <img alt="@ProdutoSugerido.Nome" height="50" src="@ProdutoSugerido.UrlImagem" width="50" />
+        <div>
+            <p>A nossa sugestão</p>
+            <p>@ProdutoSugerido.Nome</p>
+        </div>
+        <div class="price">
+            @ProdutoSugerido.Preco €
+        </div>
+    }
+    else
+    {
+        <p>Carregando sugestão...</p>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public List<Produto>? Produtos { get; set; }
+
+    [Inject]
+    private NavigationManager? NavigationManager { get; set; }
+
+    private Produto? ProdutoSugerido;
+
+    protected override void OnParametersSet()
+    {
+        SelecionarProdutoAleatorio();
+    }
+
+    private void SelecionarProdutoAleatorio()
+    {
+        if (Produtos != null && Produtos.Any())
+        {
+            var random = new Random();
+            int index = random.Next(Produtos.Count);
+            ProdutoSugerido = Produtos[index];
+        }
+        else
+        {
+            ProdutoSugerido = null;
+        }
+    }
+
+    public void OnProdutoClick(int id)
+    {
+        if (id != 0)
+        {
+            NavigationManager!.NavigateTo($"/products/{id}");
+        }
+    }
+}

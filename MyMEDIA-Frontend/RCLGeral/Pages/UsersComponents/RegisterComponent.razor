@@ -1,0 +1,90 @@
+﻿@page "/register"
+
+@inject NavigationManager NavigationManager
+
+<PageTitle>Registo</PageTitle>
+
+<div class="container">
+    <div class="logo">
+        <h1>Que Visto Hoje?</h1>
+        <p>Store</p>
+    </div>
+
+    <EditForm Model="@register" OnValidSubmit="HandleRegister">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="form-group">
+            <InputText @bind-Value="register.Nome" placeholder="Nome" class="form-control" />
+        </div>
+        <div class="form-group">
+            <InputText @bind-Value="register.Apelido" placeholder="Apelido" class="form-control" />
+        </div>
+        <div class="form-group">
+            <InputText @bind-Value="register.Email" placeholder="E-mail" type="email" class="form-control" />
+        </div>
+        <div class="form-group">
+            <InputText @bind-Value="register.Password" placeholder="Password" type="password" class="form-control" />
+        </div>
+        <div class="form-group">
+            <InputText @bind-Value="register.ConfirmPassword" placeholder="Confirmar Password" type="password" class="form-control" />
+        </div>
+        <button class="btn" type="submit">Registar</button>
+    </EditForm>
+
+    <div class="login">
+        Já tem uma conta?
+        <a href="login">Faça login</a>
+    </div>
+</div>
+
+<Notification IsVisible="@showNotification" Message="@notificationMessage" NotificationType="@notificationType" OnClose="@CloseNotification" />
+
+@code {
+
+    [Inject]
+    public IApiServices? _apiService { get; set; }
+
+    private Register register = new Register(){
+            Nome = "",
+            Apelido = "",
+            Email = "",
+            Password = "",
+            ConfirmPassword = "",
+            Role = "Cliente"
+    };
+
+    private bool showNotification = false;
+    private string notificationMessage = "";
+    private string notificationType = "success";
+
+    private async Task HandleRegister()
+    {
+        try
+        {
+            var result = await _apiService!.Registar(register);
+            if(result.Data){
+                NavigationManager.NavigateTo("/login");
+            }else{
+                ShowNotification($"{result.ErrorMessage}", "error");
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowNotification($"{ex.Message}", "error");
+        }
+    }
+
+    private void ShowNotification(string message, string type)
+    {
+        notificationMessage = message;
+        notificationType = type;
+        showNotification = true;
+        StateHasChanged();
+    }
+
+    private void CloseNotification()
+    {
+        showNotification = false;
+        StateHasChanged();
+    }
+}

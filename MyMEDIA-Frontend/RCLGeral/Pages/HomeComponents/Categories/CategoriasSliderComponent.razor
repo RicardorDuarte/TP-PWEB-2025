@@ -1,0 +1,18 @@
+﻿<div class="categorias-slider-wrapper">
+    <CategoriasSlider Categories="@categories" OnCategorySelected="OnCategorySelected" />
+</div>
+
+@code {
+    [Inject]
+    public IApiServices? _apiServices { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnCategorySelected { get; set; }
+
+    private List<Categoria>? categories = new List<Categoria>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await _apiServices!.GetCategorias();
+    }
+}

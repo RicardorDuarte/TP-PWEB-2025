@@ -1,0 +1,48 @@
+﻿@page "/payment/{Id:int}"
+
+@inject IApiServices ApiService
+@inject NavigationManager NavigationManager
+
+<div class="detalhes-pagamento-container">
+    <div class="pagamento-content">
+        @if (pagamento != null)
+        {
+            <h2>Detalhes do Pagamento da Encomenda #@Id</h2>
+            <div class="pagamento-info">
+                <p><strong>ID do Pagamento:</strong> @pagamento.ID</p>
+                <p><strong>Valor:</strong> @(pagamento.Valor?.ToString("C") ?? "N/A")</p>
+                <p><strong>Método de Pagamento:</strong> @(pagamento.MetodoPagamento ?? "N/A")</p>
+            </div>
+
+            <div class="acoes">
+                <button class="btn-voltar" @onclick="Voltar">Voltar para Encomenda</button>
+            </div>
+        }
+        else
+        {
+            <p>Carregando detalhes do pagamento...</p>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Pagamento? pagamento;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await ApiService.GetPagamentoPorEncomenda(Id);
+        if (response.Data != null){
+            pagamento = response.Data;
+        }
+        else{
+            Console.WriteLine($"Erro ao carregar pagamento: {response.ErrorMessage}");
+        }
+    }
+
+    private void Voltar(){
+        NavigationManager.NavigateTo($"/orders/{Id}");
+    }
+}

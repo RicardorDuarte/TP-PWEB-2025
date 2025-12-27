@@ -1,0 +1,55 @@
+﻿@page "/profile"
+@inject IApiServices ApiService
+@inject NavigationManager NavigationManager
+
+<div class="perfil-container">
+    <div class="perfil-content">
+        <h2>Perfil do Utilizador</h2>
+
+        @if (user == null)
+        {
+            <p>Carregando...</p>
+        }
+        else if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <p class="error-message">Erro: @errorMessage</p>
+        }
+        else
+        {
+            <div class="perfil-info">
+                <p><strong>Email:</strong> @user.Email</p>
+                <p><strong>Nome:</strong> @user.Nome</p>
+                <p><strong>Apelido:</strong> @user.Apelido</p>
+            </div>
+
+            <div class="acoes">
+                <button class="btn-voltar" @onclick="Voltar">Comprar</button>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private ApplicationUser? user;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await ApiService.GetProfile();
+
+        if (response != null && response.Data != null)
+        {
+            user = response.Data;
+            errorMessage = null;
+        }
+        else
+        {
+            errorMessage = response?.ErrorMessage ?? "Erro ao obter o perfil.";
+        }
+    }
+
+    private void Voltar()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+}
