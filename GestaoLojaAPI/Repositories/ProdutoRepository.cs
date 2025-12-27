@@ -16,8 +16,8 @@ public class ProdutoRepository : IProdutoRepository
         return await _dbContext.Produtos
             .Where(p => p.CategoriaId == categoriaId)
             .Where(x => x.Imagem.Length > 0)
-            .Include("ModoEntrega")
-            .Include("Categoria")
+            .Include("modoentrega")
+            .Include("categoria")
             .OrderBy(o => o.Nome)
             .ToListAsync();
     }
@@ -26,8 +26,8 @@ public class ProdutoRepository : IProdutoRepository
         return await _dbContext.Produtos
             .Where(p => p.Promocao == true)
             .Where(x => x.Imagem!.Length > 0)
-            .Include("ModoEntrega")
-            .Include("Categoria")
+            .Include("modoentrega")
+            .Include("categoria")
             .OrderBy(p => p.categoria.Ordem)
             .ThenBy(p => p.Nome)
             .ToListAsync();
@@ -37,8 +37,8 @@ public class ProdutoRepository : IProdutoRepository
         return await _dbContext.Produtos
             .Where(p => p.MaisVendido)
             .Where(x => x.Imagem!.Length > 0)
-            .Include("ModoEntrega")
-            .Include("Categoria")
+            .Include("modoentrega")
+            .Include("categoria")
             .OrderBy(p => p.categoria.Ordem)
             .ThenBy(p => p.Nome)
             .ToListAsync();
@@ -47,8 +47,8 @@ public class ProdutoRepository : IProdutoRepository
     {
         var produtos = await _dbContext.Produtos
             .Where(x => x.Imagem!.Length > 0)
-            .Include("ModoEntrega")
-            .Include("Categoria")
+            .Include("modoentrega")
+            .Include("categoria")
             .OrderBy(p => p.categoria.Ordem)
             .ThenBy(p => p.Nome)
             .ToListAsync();
@@ -59,8 +59,8 @@ public class ProdutoRepository : IProdutoRepository
     {
         var detalheProduto = await _dbContext.Produtos
             .Where(x => x.Imagem!.Length > 0)
-            .Include("ModoEntrega")
-            .Include("Categoria")
+            .Include("modoentrega")
+            .Include("categoria")
             .FirstOrDefaultAsync(p => p.Id == id);
 
         if (detalheProduto is null)
@@ -75,8 +75,8 @@ public class ProdutoRepository : IProdutoRepository
         return await _dbContext.Produtos
             .Where(p => p.Id == id)
             .Where(p => p.Imagem!.Length > 0)
-            .Include("ModoEntrega")
-            .Include("Categoria")
+            .Include("modoentrega")
+            .Include("categoria")
             .FirstOrDefaultAsync();
     }
 }
