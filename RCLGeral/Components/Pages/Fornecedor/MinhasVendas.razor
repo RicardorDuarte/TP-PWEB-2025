@@ -1,0 +1,253 @@
+@page "/minhas-vendas"
+@using System.Globalization
+@inject IFornecedorService FornecedorService
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Minhas Vendas - MyCOLL</PageTitle>
+
+<div class="minhas-vendas-page">
+    <div class="page-header">
+        <h1>?? Histórico de Vendas</h1>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>A carregar vendas...</p>
+        </div>
+    }
+    else if (!vendas.Any())
+    {
+        <div class="empty-state">
+            <span class="empty-icon">??</span>
+            <h2>Ainda não tem vendas</h2>
+            <p>Quando os seus produtos forem vendidos, aparecerão aqui.</p>
+            <button class="btn-primary" @onclick="IrParaProdutos">
+                Ver Meus Produtos
+            </button>
+        </div>
+    }
+    else
+    {
+        <!-- Resumo -->
+        <div class="vendas-resumo">
+            <div class="resumo-card">
+                <span class="resumo-icon">??</span>
+                <div class="resumo-info">
+                    <span class="resumo-valor">@vendas.Count</span>
+                    <span class="resumo-label">Total de Vendas</span>
+                </div>
+            </div>
+            <div class="resumo-card">
+                <span class="resumo-icon">??</span>
+                <div class="resumo-info">
+                    <span class="resumo-valor">@vendas.Sum(v => v.Itens.Sum(i => i.Quantidade))</span>
+                    <span class="resumo-label">Itens Vendidos</span>
+                </div>
+            </div>
+            <div class="resumo-card destaque">
+                <span class="resumo-icon">??</span>
+                <div class="resumo-info">
+                    <span class="resumo-valor">@FormatarPreco(vendas.Sum(v => v.Total))</span>
+                    <span class="resumo-label">Valor Total</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filtros-section">
+            <div class="filtro-grupo">
+                <label>Estado:</label>
+                <select @bind="filtroEstado" @bind:after="AplicarFiltros">
+                    <option value="">Todos</option>
+                    <option value="Confirmada">Confirmada</option>
+                    <option value="Paga">Paga</option>
+                    <option value="Expedida">Expedida</option>
+                    <option value="Concluida">Concluída</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Lista de Vendas -->
+        <div class="vendas-lista">
+            @foreach (var venda in vendasFiltradas)
+            {
+                <div class="venda-card" @onclick="() => ToggleExpandido(venda.Id)">
+                    <div class="venda-header">
+                        <div class="venda-info-principal">
+                            <span class="venda-id">Encomenda #@venda.Id</span>
+                            <span class="venda-data">@venda.DataCriacao.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                        <div class="venda-estado">
+                            <span class="estado-badge @GetEstadoClasse(venda.Estado)">
+                                @GetEstadoIcone(venda.Estado) @venda.Estado
+                            </span>
+                        </div>
+                        <div class="venda-total">
+                            <span class="total-label">Total:</span>
+                            <span class="total-valor">@FormatarPreco(venda.Total)</span>
+                        </div>
+                        <button class="btn-expand">
+                            @(expandidos.Contains(venda.Id) ? "?" : "?")
+                        </button>
+                    </div>
+
+                    @if (expandidos.Contains(venda.Id))
+                    {
+                        <div class="venda-detalhes">
+                            <h4>Itens vendidos nesta encomenda:</h4>
+                            <div class="venda-itens">
+                                @foreach (var item in venda.Itens)
+                                {
+                                    <div class="venda-item">
+                                        <div class="item-imagem">
+                                            @if (!string.IsNullOrEmpty(item.ProdutoImagem))
+                                            {
+                                                <img src="@item.ProdutoImagem" alt="@item.ProdutoNome" />
+                                            }
+                                            else
+                                            {
+                                                <div class="placeholder-img">??</div>
+                                            }
+                                        </div>
+                                        <div class="item-info">
+                                            <span class="item-nome">@item.ProdutoNome</span>
+                                            <span class="item-qtd">Qtd: @item.Quantidade</span>
+                                        </div>
+                                        <div class="item-preco">
+                                            <span class="preco-unit">@FormatarPreco(item.PrecoUnitario) /un</span>
+                                            <span class="preco-subtotal">@FormatarPreco(item.Quantidade * item.PrecoUnitario)</span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="venda-timeline">
+                                <h4>Progresso:</h4>
+                                <div class="timeline">
+                                    <div class="timeline-item @(GetTimelineClasse(venda, "Confirmada"))">
+                                        <span class="timeline-icon">?</span>
+                                        <span class="timeline-label">Confirmada</span>
+                                    </div>
+                                    <div class="timeline-item @(GetTimelineClasse(venda, "Paga"))">
+                                        <span class="timeline-icon">??</span>
+                                        <span class="timeline-label">Paga</span>
+                                        @if (venda.DataPagamento.HasValue)
+                                        {
+                                            <span class="timeline-data">@venda.DataPagamento.Value.ToString("dd/MM")</span>
+                                        }
+                                    </div>
+                                    <div class="timeline-item @(GetTimelineClasse(venda, "Expedida"))">
+                                        <span class="timeline-icon">??</span>
+                                        <span class="timeline-label">Expedida</span>
+                                        @if (venda.DataExpedicao.HasValue)
+                                        {
+                                            <span class="timeline-data">@venda.DataExpedicao.Value.ToString("dd/MM")</span>
+                                        }
+                                    </div>
+                                    <div class="timeline-item @(GetTimelineClasse(venda, "Concluida"))">
+                                        <span class="timeline-icon">?</span>
+                                        <span class="timeline-label">Concluída</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private static readonly CultureInfo CulturaEuro = new("pt-PT");
+    
+    private List<EncomendaModel> vendas = new();
+    private List<EncomendaModel> vendasFiltradas = new();
+    private HashSet<int> expandidos = new();
+    private bool isLoading = true;
+    private string filtroEstado = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var isAuth = await AuthService.IsAuthenticatedAsync();
+        if (!isAuth)
+        {
+            Navigation.NavigateTo("/login?returnUrl=/minhas-vendas");
+            return;
+        }
+
+        var userInfo = await AuthService.GetUserInfoAsync();
+        if (userInfo?.IsFornecedor != true)
+        {
+            Navigation.NavigateTo("/");
+            return;
+        }
+
+        await CarregarVendas();
+    }
+
+    private async Task CarregarVendas()
+    {
+        isLoading = true;
+        vendas = await FornecedorService.GetHistoricoVendasAsync();
+        AplicarFiltros();
+        isLoading = false;
+    }
+
+    private void AplicarFiltros()
+    {
+        vendasFiltradas = vendas
+            .Where(v => string.IsNullOrEmpty(filtroEstado) || v.Estado == filtroEstado)
+            .OrderByDescending(v => v.DataCriacao)
+            .ToList();
+    }
+
+    private void ToggleExpandido(int vendaId)
+    {
+        if (expandidos.Contains(vendaId))
+            expandidos.Remove(vendaId);
+        else
+            expandidos.Add(vendaId);
+    }
+
+    private void IrParaProdutos()
+    {
+        Navigation.NavigateTo("/meus-produtos");
+    }
+
+    private string FormatarPreco(decimal preco) => preco.ToString("C", CulturaEuro);
+
+    private string GetEstadoClasse(string estado) => estado switch
+    {
+        "Confirmada" => "estado-confirmada",
+        "Paga" => "estado-paga",
+        "Expedida" => "estado-expedida",
+        "Concluida" => "estado-concluida",
+        _ => ""
+    };
+
+    private string GetEstadoIcone(string estado) => estado switch
+    {
+        "Confirmada" => "?",
+        "Paga" => "??",
+        "Expedida" => "??",
+        "Concluida" => "?",
+        _ => ""
+    };
+
+    private string GetTimelineClasse(EncomendaModel venda, string etapa)
+    {
+        var ordemEstados = new[] { "Confirmada", "Paga", "Expedida", "Concluida" };
+        var indiceAtual = Array.IndexOf(ordemEstados, venda.Estado);
+        var indiceEtapa = Array.IndexOf(ordemEstados, etapa);
+
+        if (indiceEtapa < indiceAtual)
+            return "passado";
+        if (indiceEtapa == indiceAtual)
+            return "ativo";
+        return "";
+    }
+}

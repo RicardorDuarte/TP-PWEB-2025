@@ -1,0 +1,154 @@
+@inherits LayoutComponentBase
+@inject IAuthService AuthService
+@inject ICarrinhoService CarrinhoService
+@inject NavigationManager Navigation
+
+<div class="page">
+    <header class="top-header">
+        <div class="header-content">
+            <a href="" class="brand">
+                <span class="brand-icon">???</span>
+                <span class="brand-text">MyCOLL</span>
+            </a>
+            
+            <div class="search-box">
+                <input type="text" placeholder="Pesquisar colecionáveis..." @bind="pesquisa" @onkeypress="OnPesquisaKeyPress" />
+
+                <button @onclick="Pesquisar" class="search-btn" style="display: flex; align-items: center; justify-content: center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                        <path fill-rule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+
+            <nav class="header-nav">
+                <a href="carrinho" style="text-decoration: none; position: relative; display: inline-block; margin-right: 15px;">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black" width="28" height="28">
+                        <path fill-rule="evenodd" d="M7.5 6v.75H5.513c-.96 0-1.764.724-1.865 1.679l-1.263 12A1.875 1.875 0 0 0 4.25 22.5h15.5a1.875 1.875 0 0 0 1.865-2.071l-1.263-12a1.875 1.875 0 0 0-1.865-1.679H16.5V6a4.5 4.5 0 1 0-9 0ZM12 3a3 3 0 0 0-3 3v.75h6V6a3 3 0 0 0-3-3Zm-3 8.25a3 3 0 1 0 6 0v-.75a.75.75 0 0 1 1.5 0v.75a4.5 4.5 0 1 1-9 0v-.75a.75.75 0 0 1 1.5 0v.75Z" clip-rule="evenodd" />
+                    </svg>
+
+                    @if (CarrinhoService.GetQuantidadeTotal() > 0)
+                    {
+                        <span style="position: absolute;
+                   top: -8px;
+                   right: -10px;
+                   background-color: red;
+                   color: white;
+                   border-radius: 50%;
+                   min-width: 20px;
+                   height: 20px;
+                   display: flex;
+                   align-items: center;
+                   justify-content: center;
+                   font-size: 11px;
+                   font-weight: bold;
+                   border: 2px solid white;">
+                            @CarrinhoService.GetQuantidadeTotal()
+                        </span>
+                    }
+                </a>
+                
+                @if (isAuthenticated)
+                {
+                    <div class="user-menu">
+                        <span class="user-name">@userInfo?.NomeCompleto</span>
+                        <div class="dropdown-menu">
+                            @if (userInfo?.IsCliente == true)
+                            {
+                                <a href="minhas-encomendas">?? Minhas Encomendas</a>
+                            }
+                            @if (userInfo?.IsFornecedor == true)
+                            {
+                                <a href="meus-produtos">?? Meus Produtos</a>
+                                <a href="minhas-vendas">?? Minhas Vendas</a>
+                            }
+                            <a href="perfil">?? Meu Perfil</a>
+                            <button @onclick="Logout">?? Sair</button>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <a href="login" class="nav-item">Entrar</a>
+                    <a href="registar" class="nav-item btn-register">Registar</a>
+                }
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        @Body
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; @DateTime.Now.Year MyCOLL - Plataforma de Colecionáveis</p>
+        </div>
+    </footer>
+</div>
+
+@code {
+    private bool isAuthenticated;
+    private UserInfo? userInfo;
+    private string pesquisa = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        isAuthenticated = await AuthService.IsAuthenticatedAsync();
+        if (isAuthenticated)
+        {
+            userInfo = await AuthService.GetUserInfoAsync();
+        }
+
+        AuthService.OnAuthStateChanged += OnAuthStateChanged;
+        CarrinhoService.OnCarrinhoChanged += OnCarrinhoChanged;
+    }
+
+    private async void OnAuthStateChanged()
+    {
+        isAuthenticated = await AuthService.IsAuthenticatedAsync();
+        if (isAuthenticated)
+        {
+            userInfo = await AuthService.GetUserInfoAsync();
+        }
+        else
+        {
+            userInfo = null;
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void OnCarrinhoChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/");
+    }
+
+    private void Pesquisar()
+    {
+        if (!string.IsNullOrWhiteSpace(pesquisa))
+        {
+            Navigation.NavigateTo($"/produtos?pesquisa={Uri.EscapeDataString(pesquisa)}");
+        }
+    }
+
+    private void OnPesquisaKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            Pesquisar();
+        }
+    }
+
+    public void Dispose()
+    {
+        AuthService.OnAuthStateChanged -= OnAuthStateChanged;
+        CarrinhoService.OnCarrinhoChanged -= OnCarrinhoChanged;
+    }
+}

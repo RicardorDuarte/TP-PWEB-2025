@@ -26,7 +26,7 @@ namespace GestaoLojaAPI.Repositories
                     f.ProdutoId,
                     ProdutoNome = f.Produto.Nome,
                     ProdutoPreco = f.Produto.Preco,
-                    ProdutoDescricao = f.Produto.Detalhe
+                    ProdutoDetalhe = f.Produto.Detalhe
                 })
                 .ToListAsync();
 

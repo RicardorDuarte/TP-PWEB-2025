@@ -1,0 +1,189 @@
+@page "/carrinho"
+@using System.Globalization
+@inject ICarrinhoService CarrinhoService
+@inject IAuthService AuthService
+@inject IEncomendaService EncomendaService
+@inject NavigationManager Navigation
+
+<PageTitle>Carrinho - MyCOLL</PageTitle>
+
+<div class="carrinho-page">
+    <h1>?? Carrinho de Compras</h1>
+
+    @if (CarrinhoService.Carrinho.TotalItens == 0)
+    {
+        <div class="carrinho-vazio">
+            <span class="empty-icon">??</span>
+            <h2>O seu carrinho está vazio</h2>
+            <p>Explore os nossos produtos e adicione ao carrinho</p>
+            <a href="/" class="btn-primary">Ver Produtos</a>
+        </div>
+    }
+    else
+    {
+        <div class="carrinho-content">
+            <div class="carrinho-itens">
+                @foreach (var item in CarrinhoService.Carrinho.Itens)
+                {
+                    <div class="carrinho-item">
+                        <div class="item-image">
+                            <img src="@item.ProdutoImagem" alt="@item.ProdutoNome" />
+                        </div>
+                        <div class="item-info">
+                            <h3>@item.ProdutoNome</h3>
+                            <p class="item-preco-unit">@FormatarPreco(item.PrecoUnitario) /un</p>
+                        </div>
+                        <div class="item-quantidade">
+                            <button @onclick="() => DiminuirQuantidade(item)" disabled="@(!item.PodeDiminuir)">-</button>
+                            <span>@item.Quantidade</span>
+                            <button @onclick="() => AumentarQuantidade(item)" disabled="@(!item.PodeAumentar)">+</button>
+                        </div>
+                        <div class="item-subtotal">
+                            <span>@FormatarPreco(item.Subtotal)</span>
+                        </div>
+                        <button class="btn-remover" @onclick="() => RemoverItem(item.ProdutoId)" style="border: none; background: transparent; padding: 0;">
+
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="red" width="24" height="24">
+                                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm3 10.5a.75.75 0 0 0 0-1.5H9a.75.75 0 0 0 0 1.5h6Z" clip-rule="evenodd" />
+                            </svg>
+
+                        </button>
+                    </div>
+                }
+            </div>
+
+            <div class="carrinho-resumo">
+                <h2>Resumo</h2>
+                <div class="resumo-linha">
+                    <span>Subtotal (@CarrinhoService.Carrinho.TotalItens itens)</span>
+                    <span>@FormatarPreco(CarrinhoService.Carrinho.Total)</span>
+                </div>
+                <div class="resumo-linha">
+                    <span>Portes</span>
+                    <span class="gratis">Grátis</span>
+                </div>
+                <div class="resumo-total">
+                    <span>Total</span>
+                    <span>@FormatarPreco(CarrinhoService.Carrinho.Total)</span>
+                </div>
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-error">
+                        @errorMessage
+                    </div>
+                }
+
+                @if (isAuthenticated)
+                {
+                    <div class="form-group">
+                        <label>Método de Pagamento</label>
+                        <select @bind="metodoPagamento" class="form-control">
+                            <option value="MBWay">MBWay</option>
+                            <option value="Multibanco">Multibanco</option>
+                            <option value="CartaoCredito">Cartão de Crédito</option>
+                            <option value="PayPal">PayPal</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-primary btn-full" @onclick="FinalizarCompra" disabled="@isProcessing">
+                        @if (isProcessing)
+                        {
+                            <span class="spinner-small"></span>
+                            <text>A processar...</text>
+                        }
+                        else
+                        {
+                            <text>Finalizar Compra</text>
+                        }
+                    </button>
+                }
+                else
+                {
+                    <div class="login-aviso">
+                        <p>Para finalizar a compra, faça login ou registe-se.</p>
+                        <a href="/login?returnUrl=/carrinho" class="btn-primary btn-full">Entrar</a>
+                        <a href="/registar" class="btn-secondary btn-full">Criar Conta</a>
+                    </div>
+                }
+
+                <button class="btn-link" @onclick="LimparCarrinho">
+                    Limpar carrinho
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private static readonly CultureInfo CulturaEuro = new("pt-PT");
+    
+    private bool isAuthenticated;
+    private bool isProcessing;
+    private string? errorMessage;
+    private string metodoPagamento = "MBWay";
+
+    private string FormatarPreco(decimal preco) => preco.ToString("C", CulturaEuro);
+
+    protected override async Task OnInitializedAsync()
+    {
+        isAuthenticated = await AuthService.IsAuthenticatedAsync();
+        CarrinhoService.OnCarrinhoChanged += StateHasChanged;
+    }
+
+    private void AumentarQuantidade(CarrinhoItem item)
+    {
+        CarrinhoService.AtualizarQuantidade(item.ProdutoId, item.Quantidade + 1);
+    }
+
+    private void DiminuirQuantidade(CarrinhoItem item)
+    {
+        CarrinhoService.AtualizarQuantidade(item.ProdutoId, item.Quantidade - 1);
+    }
+
+    private void RemoverItem(int produtoId)
+    {
+        CarrinhoService.RemoverProduto(produtoId);
+    }
+
+    private void LimparCarrinho()
+    {
+        CarrinhoService.Limpar();
+    }
+
+    private async Task FinalizarCompra()
+    {
+        isProcessing = true;
+        errorMessage = null;
+        StateHasChanged();
+
+        var model = new CriarEncomendaModel
+        {
+            Itens = CarrinhoService.Carrinho.Itens.Select(i => new ItemCarrinhoModel
+            {
+                ProdutoId = i.ProdutoId,
+                Quantidade = i.Quantidade
+            }).ToList(),
+            MetodoPagamento = metodoPagamento
+        };
+
+        var (success, encomenda, error) = await EncomendaService.CriarEncomendaAsync(model);
+
+        if (success && encomenda != null)
+        {
+            CarrinhoService.Limpar();
+            Navigation.NavigateTo($"/encomenda/{encomenda.Id}?nova=true");
+        }
+        else
+        {
+            errorMessage = error ?? "Erro ao criar encomenda";
+        }
+
+        isProcessing = false;
+    }
+
+    public void Dispose()
+    {
+        CarrinhoService.OnCarrinhoChanged -= StateHasChanged;
+    }
+}

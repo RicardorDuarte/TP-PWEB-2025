@@ -8,7 +8,7 @@ namespace GestaoLojaAPI.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 
-//[Authorize]
+//[Authorized]
 public class CategoriasController : ControllerBase
 {
     private readonly ICategoriaRepository categoriaRepository;
@@ -23,5 +23,17 @@ public class CategoriasController : ControllerBase
     {
         var categorias = await categoriaRepository.GetCategorias();
         return Ok(categorias);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> Get(int id)
+    {
+        var categorias = await categoriaRepository.GetCategorias();
+        var categoria = categorias.FirstOrDefault(c => c.Id == id);
+        
+        if (categoria == null)
+            return NotFound($"Categoria com id={id} não encontrada");
+            
+        return Ok(categoria);
     }
 }

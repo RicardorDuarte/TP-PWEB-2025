@@ -1,0 +1,385 @@
+@page "/meus-produtos/editar/{Id:int}"
+@using System.Globalization
+@inject IFornecedorService FornecedorService
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Editar Produto - MyCOLL</PageTitle>
+
+<div class="editar-produto-page">
+    <div class="page-header">
+        <button class="btn-link" @onclick="Voltar">? Voltar</button>
+        <h1>?? Editar Produto</h1>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>A carregar produto...</p>
+        </div>
+    }
+    else if (produto == null)
+    {
+        <div class="empty-state">
+            <span class="empty-icon">?</span>
+            <h2>Produto não encontrado</h2>
+            <p>O produto que procura não existe ou não lhe pertence.</p>
+            <button class="btn-primary" @onclick="Voltar">Voltar aos Meus Produtos</button>
+        </div>
+    }
+    else
+    {
+        @if (!string.IsNullOrEmpty(erro))
+        {
+            <div class="alert alert-error">
+                @erro
+                <button class="alert-close" @onclick="LimparErro">×</button>
+            </div>
+        }
+
+        <div class="aviso-pendente">
+            <span>??</span>
+            <p><strong>Atenção:</strong> Ao editar este produto, ele voltará ao estado <strong>Pendente</strong> 
+               e precisará de nova aprovação para ficar visível aos clientes.</p>
+        </div>
+
+        <div class="form-card">
+            <EditForm Model="model" OnValidSubmit="Submeter" FormName="EditarProdutoForm">
+                <DataAnnotationsValidator />
+
+                <div class="form-section">
+                    <h2>?? Informações Básicas</h2>
+                    
+                    <div class="form-group">
+                        <label for="nome">Nome do Produto *</label>
+                        <InputText id="nome" @bind-Value="model.Nome" class="form-control" 
+                                   placeholder="Ex: Moeda de 1 Euro - Portugal 2024" />
+                        <ValidationMessage For="() => model.Nome" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Detalhe">Descrição *</label>
+                        <InputTextArea id="Detalhe" @bind-Value="model.Detalhe" class="form-control" 
+                                       rows="4" placeholder="Descreva o seu produto em detalhe..." />
+                        <ValidationMessage For="() => model.Detalhe" />
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>??? Imagem</h2>
+                    
+                    <div class="form-group">
+                        <label>Tipo de Imagem</label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="tipoImagem" checked="@(tipoImagem == TipoImagemUrl)" 
+                                       @onchange="SelecionarTipoUrl" />
+                                <span>URL da Imagem</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="tipoImagem" checked="@(tipoImagem == TipoImagemUpload)"
+                                       @onchange="SelecionarTipoUpload" />
+                                <span>Upload de Ficheiro</span>
+                            </label>
+                            @if (!string.IsNullOrEmpty(imagemAtual))
+                            {
+                                <label class="radio-option">
+                                    <input type="radio" name="tipoImagem" checked="@(tipoImagem == TipoImagemManter)"
+                                           @onchange="SelecionarTipoManter" />
+                                    <span>Manter Imagem Atual</span>
+                                </label>
+                            }
+                        </div>
+                    </div>
+
+                    @if (tipoImagem == TipoImagemUrl)
+                    {
+                        <div class="form-group">
+                            <label for="urlImagem">URL da Imagem</label>
+                            <InputText id="urlImagem" @bind-Value="model.UrlImagem" class="form-control" 
+                                       placeholder="https://exemplo.com/imagem.jpg" />
+                        </div>
+                    }
+                    else if (tipoImagem == TipoImagemUpload)
+                    {
+                        <div class="form-group">
+                            <label for="ficheiro">Ficheiro de Imagem</label>
+                            <InputFile id="ficheiro" OnChange="OnImagemSelecionada" accept="image/*" 
+                                       class="form-control-file" />
+                            <small class="form-help">Formatos aceites: JPG, PNG, GIF. Máx: 5MB</small>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(previewImagem))
+                    {
+                        <div class="imagem-preview">
+                            <label>@(tipoImagem == TipoImagemManter ? "Imagem Atual:" : "Preview:")</label>
+                            <img src="@previewImagem" alt="Preview" />
+                        </div>
+                    }
+                </div>
+
+                <div class="form-section">
+                    <h2>?? Preço e Stock</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="precoBase">Preço Base (€) *</label>
+                            <InputNumber id="precoBase" @bind-Value="model.PrecoBase" class="form-control" 
+                                         step="0.01" min="0.01" />
+                            <small class="form-help">O preço que deseja receber.</small>
+                            <ValidationMessage For="() => model.PrecoBase" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="stock">Stock Disponível *</label>
+                            <InputNumber id="stock" @bind-Value="model.Stock" class="form-control" 
+                                         min="0" />
+                            <ValidationMessage For="() => model.Stock" />
+                        </div>
+                    </div>
+
+                    @if (produto.Estado == "Ativo")
+                    {
+                        <div class="info-preco-atual">
+                            <p>Preço Final Atual: <strong>@FormatarPreco(produto.Preco)</strong></p>
+                            <small>Após aprovação, a administração definirá um novo preço final.</small>
+                        </div>
+                    }
+                </div>
+
+                <div class="form-section">
+                    <h2>?? Classificação</h2>
+                    
+                    <div class="form-group">
+                        <label for="modo">Modo de Disponibilização *</label>
+                        <InputSelect id="modo" @bind-Value="model.ModoDisponibilizacaoId" class="form-control">
+                            <option value="0">-- Selecione --</option>
+                            @foreach (var modo in modos)
+                            {
+                                <option value="@modo.Id">@modo.Nome</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Categorias</label>
+                        <div class="categorias-selector">
+                            @foreach (var grupo in categoriasAgrupadas)
+                            {
+                                <div class="categoria-grupo">
+                                    <h4>@grupo.Key</h4>
+                                    <div class="categorias-checkboxes">
+                                        @foreach (var cat in grupo.Value)
+                                        {
+                                            <label class="checkbox-option">
+                                                <input type="checkbox" checked="@model.CategoriaIds.Contains(cat.Id)"
+                                                       @onchange="e => ToggleCategoria(cat.Id, (bool)e.Value!)" />
+                                                <span>@cat.Nome</span>
+                                            </label>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" @onclick="Voltar" disabled="@isSubmitting">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn-primary" disabled="@isSubmitting">
+                        @if (isSubmitting)
+                        {
+                            <span class="spinner-small"></span>
+                            <text>A guardar...</text>
+                        }
+                        else
+                        {
+                            <text>?? Guardar Alterações</text>
+                        }
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private const string TipoImagemUrl = "url";
+    private const string TipoImagemUpload = "upload";
+    private const string TipoImagemManter = "manter";
+    
+    private static readonly CultureInfo CulturaEuro = new("pt-PT");
+    
+    private ProdutoModel? produto;
+    private EditarProdutoModel model = new();
+    private List<ModoDisponibilizacaoModel> modos = new();
+    private List<CategoriaModel> categorias = new();
+    private Dictionary<string, List<CategoriaModel>> categoriasAgrupadas = new();
+    
+    private string tipoImagem = TipoImagemManter;
+    private string? imagemAtual;
+    private string? previewImagem;
+    private string? erro;
+    private bool isLoading = true;
+    private bool isSubmitting;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var isAuth = await AuthService.IsAuthenticatedAsync();
+        if (!isAuth)
+        {
+            Navigation.NavigateTo($"/login?returnUrl=/meus-produtos/editar/{Id}");
+            return;
+        }
+
+        var userInfo = await AuthService.GetUserInfoAsync();
+        if (userInfo?.IsFornecedor != true)
+        {
+            Navigation.NavigateTo("/");
+            return;
+        }
+
+        var carregarProduto = FornecedorService.GetMeuProdutoAsync(Id);
+        var carregarModos = FornecedorService.GetModosDisponibilizacaoAsync();
+        var carregarCategorias = FornecedorService.GetCategoriasAsync();
+
+        await Task.WhenAll(carregarProduto, carregarModos, carregarCategorias);
+
+        produto = await carregarProduto;
+        modos = await carregarModos;
+        categorias = await carregarCategorias;
+
+        if (produto != null)
+        {
+            model = new EditarProdutoModel
+            {
+                Id = produto.Id,
+                Nome = produto.Nome,
+                Detalhe = produto.Detalhe,
+                UrlImagem = produto.UrlImagem,
+                PrecoBase = produto.PrecoBase,
+                Stock = produto.Stock,
+                ModoDisponibilizacaoId = modos.FirstOrDefault(m => m.Nome == produto.ModoDisponibilizacao)?.Id ?? 0,
+                CategoriaIds = categorias.Where(c => produto.Categorias.Contains(c.Nome)).Select(c => c.Id).ToList()
+            };
+
+            imagemAtual = produto.ImagemUrl;
+            previewImagem = imagemAtual;
+            tipoImagem = TipoImagemManter;
+        }
+
+        categoriasAgrupadas = categorias
+            .GroupBy(c => c.Tipo)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        isLoading = false;
+    }
+
+    private void SelecionarTipoUrl() => tipoImagem = TipoImagemUrl;
+    private void SelecionarTipoUpload() => tipoImagem = TipoImagemUpload;
+    private void SelecionarTipoManter() { tipoImagem = TipoImagemManter; previewImagem = imagemAtual; }
+    private void LimparErro() => erro = null;
+
+    private async Task OnImagemSelecionada(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        
+        if (file.Size > 5 * 1024 * 1024)
+        {
+            erro = "O ficheiro é demasiado grande. Máximo: 5MB";
+            return;
+        }
+
+        var buffer = new byte[file.Size];
+        await file.OpenReadStream(5 * 1024 * 1024).ReadAsync(buffer);
+        
+        model.ImagemBase64 = Convert.ToBase64String(buffer);
+        model.UrlImagem = null;
+        previewImagem = $"data:{file.ContentType};base64,{model.ImagemBase64}";
+    }
+
+    private void ToggleCategoria(int categoriaId, bool selecionado)
+    {
+        if (selecionado && !model.CategoriaIds.Contains(categoriaId))
+        {
+            model.CategoriaIds.Add(categoriaId);
+        }
+        else if (!selecionado && model.CategoriaIds.Contains(categoriaId))
+        {
+            model.CategoriaIds.Remove(categoriaId);
+        }
+    }
+
+    private async Task Submeter()
+    {
+        erro = null;
+
+        if (string.IsNullOrWhiteSpace(model.Nome))
+        {
+            erro = "O nome do produto é obrigatório.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(model.Detalhe))
+        {
+            erro = "A descrição do produto é obrigatória.";
+            return;
+        }
+
+        if (model.PrecoBase <= 0)
+        {
+            erro = "O preço base deve ser maior que zero.";
+            return;
+        }
+
+        if (model.ModoDisponibilizacaoId == 0)
+        {
+            erro = "Selecione um modo de disponibilização.";
+            return;
+        }
+
+        isSubmitting = true;
+
+        try
+        {
+            if (tipoImagem == TipoImagemUrl)
+            {
+                model.ImagemBase64 = null;
+            }
+            else if (tipoImagem == TipoImagemManter)
+            {
+                model.UrlImagem = produto?.UrlImagem;
+                model.ImagemBase64 = produto?.ImagemBase64;
+            }
+
+            var (success, error) = await FornecedorService.EditarProdutoAsync(Id, model);
+
+            if (success)
+            {
+                Navigation.NavigateTo("/meus-produtos");
+            }
+            else
+            {
+                erro = error ?? "Erro ao atualizar produto. Tente novamente.";
+            }
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void Voltar()
+    {
+        Navigation.NavigateTo("/meus-produtos");
+    }
+
+    private string FormatarPreco(decimal preco) => preco.ToString("C", CulturaEuro);
+}

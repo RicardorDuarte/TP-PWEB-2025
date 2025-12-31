@@ -1,0 +1,248 @@
+@page "/encomenda/{Id:int}"
+@using System.Globalization
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Cliente")]
+@inject IEncomendaService EncomendaService
+@inject NavigationManager Navigation
+
+<PageTitle>Encomenda #@Id - MyCOLL</PageTitle>
+
+<div class="encomenda-detalhe-page">
+    @if (novaEncomenda)
+    {
+        <div class="alert alert-success sucesso-compra">
+            <span class="success-icon">?</span>
+            <h2>Encomenda criada com sucesso!</h2>
+            <p>A sua encomenda foi registada e está a aguardar processamento.</p>
+        </div>
+    }
+
+    @if (isLoading)
+    {
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>A carregar encomenda...</p>
+        </div>
+    }
+    else if (encomenda == null)
+    {
+        <div class="error-state">
+            <h2>Encomenda não encontrada</h2>
+            <a href="/minhas-encomendas" class="btn-primary">Ver minhas encomendas</a>
+        </div>
+    }
+    else
+    {
+        <div class="encomenda-detalhe">
+            <div class="encomenda-header-detalhe">
+                <div>
+                    <h1>Encomenda #@encomenda.Id</h1>
+                    <p class="encomenda-data">Criada em @encomenda.DataCriacao.ToString("dd/MM/yyyy 'às' HH:mm")</p>
+                </div>
+                <span class="encomenda-estado-grande estado-@encomenda.Estado.ToLower()">@encomenda.Estado</span>
+            </div>
+
+            <!-- Timeline de estados -->
+            <div class="encomenda-timeline">
+                <div class="timeline-item @(IsEstadoAtivo("Pendente") ? "ativo" : "") @(IsEstadoPassado("Pendente") ? "passado" : "")">
+                    <span class="timeline-icon">??</span>
+                    <span class="timeline-label">Pendente</span>
+                </div>
+                <div class="timeline-item @(IsEstadoAtivo("Confirmada") ? "ativo" : "") @(IsEstadoPassado("Confirmada") ? "passado" : "")">
+                    <span class="timeline-icon">?</span>
+                    <span class="timeline-label">Confirmada</span>
+                </div>
+                <div class="timeline-item @(IsEstadoAtivo("Paga") ? "ativo" : "") @(IsEstadoPassado("Paga") ? "passado" : "")">
+                    <span class="timeline-icon">??</span>
+                    <span class="timeline-label">Paga</span>
+                </div>
+                <div class="timeline-item @(IsEstadoAtivo("Expedida") ? "ativo" : "") @(IsEstadoPassado("Expedida") ? "passado" : "")">
+                    <span class="timeline-icon">??</span>
+                    <span class="timeline-label">Expedida</span>
+                </div>
+                <div class="timeline-item @(IsEstadoAtivo("Concluida") ? "ativo" : "")">
+                    <span class="timeline-icon">??</span>
+                    <span class="timeline-label">Concluída</span>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-error">@errorMessage</div>
+            }
+
+            @if (!string.IsNullOrEmpty(successMessage))
+            {
+                <div class="alert alert-success">@successMessage</div>
+            }
+
+            <!-- Ações disponíveis -->
+            @if (encomenda.PodePagar || encomenda.PodeCancelar)
+            {
+                <div class="encomenda-acoes">
+                    @if (encomenda.PodePagar)
+                    {
+                        <div class="acao-pagar">
+                            <select @bind="metodoPagamento" class="form-control">
+                                <option value="MBWay">MBWay</option>
+                                <option value="Multibanco">Multibanco</option>
+                                <option value="CartaoCredito">Cartão de Crédito</option>
+                                <option value="PayPal">PayPal</option>
+                            </select>
+                            <button class="btn-primary" @onclick="PagarEncomenda" disabled="@isProcessing">
+                                ?? Pagar Encomenda
+                            </button>
+                        </div>
+                    }
+                    @if (encomenda.PodeCancelar)
+                    {
+                        <button class="btn-danger" @onclick="CancelarEncomenda" disabled="@isProcessing">
+                            ? Cancelar Encomenda
+                        </button>
+                    }
+                </div>
+            }
+
+            <!-- Itens da encomenda -->
+            <div class="encomenda-itens-lista">
+                <h2>Itens da Encomenda</h2>
+                @foreach (var item in encomenda.Itens)
+                {
+                    <div class="encomenda-item">
+                        <div class="item-imagem">
+                            @if (!string.IsNullOrEmpty(item.ProdutoImagem))
+                            {
+                                <img src="@item.ProdutoImagem" alt="@item.ProdutoNome" />
+                            }
+                        </div>
+                        <div class="item-detalhes">
+                            <h3>@item.ProdutoNome</h3>
+                            <p>Quantidade: @item.Quantidade × @FormatarPreco(item.PrecoUnitario)</p>
+                        </div>
+                        <div class="item-subtotal">
+                            @FormatarPreco(item.Subtotal)
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Resumo de pagamento -->
+            <div class="encomenda-resumo-pagamento">
+                <div class="resumo-linha">
+                    <span>Subtotal</span>
+                    <span>@FormatarPreco(encomenda.Total)</span>
+                </div>
+                <div class="resumo-linha">
+                    <span>Portes</span>
+                    <span>Grátis</span>
+                </div>
+                <div class="resumo-total">
+                    <span>Total</span>
+                    <span>@FormatarPreco(encomenda.Total)</span>
+                </div>
+                @if (!string.IsNullOrEmpty(encomenda.MetodoPagamento))
+                {
+                    <div class="metodo-pagamento-info">
+                        <span>Método: @encomenda.MetodoPagamento</span>
+                    </div>
+                }
+            </div>
+
+            <div class="voltar-link">
+                <a href="/minhas-encomendas">? Voltar às minhas encomendas</a>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private static readonly CultureInfo CulturaEuro = new("pt-PT");
+    
+    [Parameter]
+    public int Id { get; set; }
+
+    [SupplyParameterFromQuery]
+    public bool Nova { get; set; }
+
+    private EncomendaModel? encomenda;
+    private bool isLoading = true;
+    private bool isProcessing;
+    private bool novaEncomenda;
+    private string? errorMessage;
+    private string? successMessage;
+    private string metodoPagamento = "MBWay";
+
+    private readonly string[] ordenEstados = { "Pendente", "Confirmada", "Paga", "Expedida", "Concluida" };
+
+    private string FormatarPreco(decimal preco) => preco.ToString("C", CulturaEuro);
+
+    protected override async Task OnInitializedAsync()
+    {
+        novaEncomenda = Nova;
+        await CarregarEncomenda();
+    }
+
+    private async Task CarregarEncomenda()
+    {
+        isLoading = true;
+        encomenda = await EncomendaService.GetEncomendaAsync(Id);
+        isLoading = false;
+    }
+
+    private bool IsEstadoAtivo(string estado)
+    {
+        return encomenda?.Estado == estado;
+    }
+
+    private bool IsEstadoPassado(string estado)
+    {
+        if (encomenda == null) return false;
+        var indexAtual = Array.IndexOf(ordenEstados, encomenda.Estado);
+        var indexEstado = Array.IndexOf(ordenEstados, estado);
+        return indexEstado < indexAtual;
+    }
+
+    private async Task PagarEncomenda()
+    {
+        isProcessing = true;
+        errorMessage = null;
+        successMessage = null;
+        StateHasChanged();
+
+        var (success, error) = await EncomendaService.PagarEncomendaAsync(Id, metodoPagamento);
+
+        if (success)
+        {
+            successMessage = "Pagamento registado com sucesso!";
+            await CarregarEncomenda();
+        }
+        else
+        {
+            errorMessage = error ?? "Erro ao processar pagamento";
+        }
+
+        isProcessing = false;
+    }
+
+    private async Task CancelarEncomenda()
+    {
+        isProcessing = true;
+        errorMessage = null;
+        successMessage = null;
+        StateHasChanged();
+
+        var (success, error) = await EncomendaService.CancelarEncomendaAsync(Id);
+
+        if (success)
+        {
+            successMessage = "Encomenda cancelada com sucesso!";
+            await CarregarEncomenda();
+        }
+        else
+        {
+            errorMessage = error ?? "Erro ao cancelar encomenda";
+        }
+
+        isProcessing = false;
+    }
+}
