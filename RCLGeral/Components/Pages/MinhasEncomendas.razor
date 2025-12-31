@@ -1,0 +1,78 @@
+@page "/minhas-encomendas"
+@using System.Globalization
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Cliente")]
+@inject IEncomendaService EncomendaService
+@inject NavigationManager Navigation
+
+<PageTitle>Minhas Encomendas - MyCOLL</PageTitle>
+
+<div class="encomendas-page">
+    <h1>?? Minhas Encomendas</h1>
+
+    @if (isLoading)
+    {
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>A carregar encomendas...</p>
+        </div>
+    }
+    else if (!encomendas.Any())
+    {
+        <div class="empty-state">
+            <span class="empty-icon">??</span>
+            <h2>Ainda não tem encomendas</h2>
+            <p>Explore os nossos produtos e faça a sua primeira compra!</p>
+            <a href="/" class="btn-primary">Ver Produtos</a>
+        </div>
+    }
+    else
+    {
+        <div class="encomendas-lista">
+            @foreach (var encomenda in encomendas)
+            {
+                <div class="encomenda-card" @onclick="() => VerEncomenda(encomenda.Id)">
+                    <div class="encomenda-header">
+                        <span class="encomenda-id">Encomenda #@encomenda.Id</span>
+                        <span class="encomenda-estado estado-@encomenda.Estado.ToLower()">@encomenda.Estado</span>
+                    </div>
+                    <div class="encomenda-info">
+                        <div class="encomenda-data">
+                            <span>?? @encomenda.DataCriacao.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                        <div class="encomenda-itens-resumo">
+                            <span>@encomenda.TotalItens item(s)</span>
+                        </div>
+                        <div class="encomenda-total">
+                            <span class="total-label">Total:</span>
+                            <span class="total-valor">@FormatarPreco(encomenda.Total)</span>
+                        </div>
+                    </div>
+                    <div class="encomenda-actions">
+                        <button class="btn-link">Ver detalhes ?</button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private static readonly CultureInfo CulturaEuro = new("pt-PT");
+    
+    private List<EncomendaModel> encomendas = new();
+    private bool isLoading = true;
+
+    private string FormatarPreco(decimal preco) => preco.ToString("C", CulturaEuro);
+
+    protected override async Task OnInitializedAsync()
+    {
+        encomendas = await EncomendaService.GetHistoricoAsync();
+        isLoading = false;
+    }
+
+    private void VerEncomenda(int id)
+    {
+        Navigation.NavigateTo($"/encomenda/{id}");
+    }
+}

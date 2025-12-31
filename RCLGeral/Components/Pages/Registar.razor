@@ -1,0 +1,144 @@
+@page "/registar"
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Registar - MyCOLL</PageTitle>
+
+<div class="auth-page">
+    <div class="auth-card auth-card-large">
+        <div class="auth-header">
+            <h1>Criar Conta</h1>
+            <p>Junte-se à comunidade MyCOLL</p>
+        </div>
+
+        <EditForm Model="model" OnValidSubmit="HandleRegisto" class="auth-form">
+            <DataAnnotationsValidator />
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-error">
+                    @errorMessage
+                </div>
+            }
+
+            @if (registoSucesso)
+            {
+                <div class="alert alert-success">
+                    <p><strong>Registo efetuado com sucesso!</strong></p>
+                    <p>A sua conta está pendente de aprovação. Receberá uma notificação quando for ativada.</p>
+                    <a href="/login" class="btn-link">Ir para Login</a>
+                </div>
+            }
+            else
+            {
+                <!-- Tipo de Registo -->
+                <div class="form-group">
+                    <label>Tipo de Conta</label>
+                    <div class="tipo-registo-options">
+                        <div class="tipo-option @(model.TipoRegisto == "Cliente" ? "selected" : "")" @onclick="SelecionarCliente">
+                            <span class="tipo-icon">??</span>
+                            <span class="tipo-label">Cliente</span>
+                            <span class="tipo-desc">Quero comprar colecionáveis</span>
+                        </div>
+                        <div class="tipo-option @(model.TipoRegisto == "Fornecedor" ? "selected" : "")" @onclick="SelecionarFornecedor">
+                            <span class="tipo-icon">??</span>
+                            <span class="tipo-label">Fornecedor</span>
+                            <span class="tipo-desc">Quero vender colecionáveis</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nome">Nome</label>
+                        <InputText id="nome" @bind-Value="model.Nome" class="form-control" placeholder="Seu nome" />
+                        <ValidationMessage For="() => model.Nome" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="apelido">Apelido</label>
+                        <InputText id="apelido" @bind-Value="model.Apelido" class="form-control" placeholder="Seu apelido" />
+                        <ValidationMessage For="() => model.Apelido" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <InputText id="email" @bind-Value="model.Email" class="form-control" placeholder="seu@email.com" />
+                    <ValidationMessage For="() => model.Email" />
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <InputText id="password" type="password" @bind-Value="model.Password" class="form-control" placeholder="Mínimo 6 caracteres" />
+                    <ValidationMessage For="() => model.Password" />
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nif">NIF (opcional)</label>
+                        <InputText id="nif" @bind-Value="model.Nif" class="form-control" placeholder="123456789" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="morada">Morada (opcional)</label>
+                        <InputText id="morada" @bind-Value="model.Morada" class="form-control" placeholder="Sua morada" />
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary btn-full" disabled="@isLoading">
+                    @if (isLoading)
+                    {
+                        <span class="spinner-small"></span>
+                        <span>A registar...</span>
+                    }
+                    else
+                    {
+                        <span>Criar Conta</span>
+                    }
+                </button>
+            }
+        </EditForm>
+
+        <div class="auth-footer">
+            <p>Já tem conta? <a href="/login">Entrar</a></p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegistoModel model = new();
+    private string? errorMessage;
+    private bool isLoading;
+    private bool registoSucesso;
+
+    private void SelecionarCliente()
+    {
+        model.TipoRegisto = "Cliente";
+    }
+
+    private void SelecionarFornecedor()
+    {
+        model.TipoRegisto = "Fornecedor";
+    }
+
+    private async Task HandleRegisto()
+    {
+        isLoading = true;
+        errorMessage = null;
+        StateHasChanged();
+
+        var result = await AuthService.RegistarAsync(model);
+
+        if (result.Success)
+        {
+            registoSucesso = true;
+        }
+        else
+        {
+            errorMessage = result.Message ?? "Erro ao fazer registo";
+        }
+
+        isLoading = false;
+    }
+}

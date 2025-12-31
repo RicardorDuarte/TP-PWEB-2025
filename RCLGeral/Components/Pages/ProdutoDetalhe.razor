@@ -1,0 +1,168 @@
+@page "/produto/{Id:int}"
+@using System.Globalization
+@inject IProdutoService ProdutoService
+@inject ICarrinhoService CarrinhoService
+@inject NavigationManager Navigation
+
+<PageTitle>@(produto?.Nome ?? "Produto") - MyCOLL</PageTitle>
+
+<div class="produto-detalhe-page">
+    @if (isLoading)
+    {
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>A carregar produto...</p>
+        </div>
+    }
+    else if (produto == null)
+    {
+        <div class="error-state">
+            <h2>Produto não encontrado</h2>
+            <p>O produto que procura não existe ou foi removido.</p>
+            <a href="/" class="btn-primary">Voltar à página inicial</a>
+        </div>
+    }
+    else
+    {
+        <div class="produto-detalhe">
+            <div class="produto-galeria">
+                <img src="@produto.ImagemUrl" alt="@produto.Nome" class="produto-imagem-principal" />
+            </div>
+            
+            <div class="produto-info-detalhe">
+                <div class="produto-categorias-tags">
+                    @foreach (var cat in produto.Categorias)
+                    {
+                        <span class="tag">@cat</span>
+                    }
+                </div>
+                
+                <h1>@produto.Nome</h1>
+                
+                <p class="produto-Detalhe">@produto.Detalhe</p>
+                
+                <div class="produto-fornecedor">
+                    <span>Vendido por: <strong>@produto.FornecedorNome</strong></span>
+                </div>
+                
+                <div class="produto-disponibilidade">
+                    <span class="modo-badge">@produto.ModoDisponibilizacao</span>
+                    @if (produto.TemStock)
+                    {
+                        <span class="stock-info stock-disponivel">? Em stock (@produto.Stock disponíveis)</span>
+                    }
+                    else
+                    {
+                        <span class="stock-info stock-esgotado">? Esgotado</span>
+                    }
+                </div>
+                
+                <div class="produto-preco-detalhe">
+                    <span class="preco-final">@FormatarPreco(produto.Preco)</span>
+                    @if (produto.PrecoBase != produto.Preco)
+                    {
+                        <span class="preco-base">Preço base: @FormatarPreco(produto.PrecoBase)</span>
+                    }
+                </div>
+                
+                @if (produto.PodeComprar)
+                {
+                    <div class="produto-quantidade">
+                        <label>Quantidade:</label>
+                        <div class="quantidade-control">
+                            <button @onclick="DiminuirQuantidade" disabled="@(quantidade <= 1)">-</button>
+                            <span>@quantidade</span>
+                            <button @onclick="AumentarQuantidade" disabled="@(quantidade >= produto.Stock)">+</button>
+                        </div>
+                    </div>
+                    
+                    <div class="produto-acoes">
+                        <button class="btn-primary btn-large" @onclick="AdicionarAoCarrinho">
+                            ?? Adicionar ao Carrinho
+                        </button>
+                        <button class="btn-secondary btn-large" @onclick="ComprarAgora">
+                            ? Comprar Agora
+                        </button>
+                    </div>
+                }
+                else if (produto.ModoDisponibilizacao == "Exposição")
+                {
+                    <div class="info-exposicao">
+                        <p>??? Este item está apenas para exposição e não está disponível para venda.</p>
+                    </div>
+                }
+
+                @if (adicionadoAoCarrinho)
+                {
+                    <div class="alert alert-success">
+                        ? Produto adicionado ao carrinho!
+                        <a href="/carrinho">Ver carrinho</a>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private static readonly CultureInfo CulturaEuro = new("pt-PT");
+    
+    [Parameter]
+    public int Id { get; set; }
+
+    private ProdutoModel? produto;
+    private bool isLoading = true;
+    private int quantidade = 1;
+    private bool adicionadoAoCarrinho;
+
+    private string FormatarPreco(decimal preco) => preco.ToString("C", CulturaEuro);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarProduto();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await CarregarProduto();
+    }
+
+    private async Task CarregarProduto()
+    {
+        isLoading = true;
+        produto = await ProdutoService.GetProdutoAsync(Id);
+        quantidade = 1;
+        adicionadoAoCarrinho = false;
+        isLoading = false;
+    }
+
+    private void DiminuirQuantidade()
+    {
+        if (quantidade > 1)
+            quantidade--;
+    }
+
+    private void AumentarQuantidade()
+    {
+        if (produto != null && quantidade < produto.Stock)
+            quantidade++;
+    }
+
+    private void AdicionarAoCarrinho()
+    {
+        if (produto != null)
+        {
+            CarrinhoService.AdicionarProduto(produto, quantidade);
+            adicionadoAoCarrinho = true;
+        }
+    }
+
+    private void ComprarAgora()
+    {
+        if (produto != null)
+        {
+            CarrinhoService.AdicionarProduto(produto, quantidade);
+            Navigation.NavigateTo("/carrinho");
+        }
+    }
+}
