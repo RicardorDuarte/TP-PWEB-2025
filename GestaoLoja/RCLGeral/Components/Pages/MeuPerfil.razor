@@ -1,0 +1,327 @@
+@page "/perfil"
+@using System.Globalization
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Meu Perfil - MyMedia</PageTitle>
+
+<div class="perfil-page">
+    <h1>Meu Perfil</h1>
+
+    @if (isLoading)
+    {
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>A carregar perfil...</p>
+        </div>
+    }
+    else if (perfil == null)
+    {
+        <div class="error-state">
+            <p>Erro ao carregar perfil. Por favor, faça login novamente.</p>
+            <button class="btn-primary"
+                    @onclick= "IrParaLogin">Fazer Login</button>
+        </div>
+    }
+    else
+    {
+        <div class="perfil-container">
+            <!-- Foto de Perfil -->
+            <div class="perfil-foto-section">
+                <div class="perfil-foto">
+                    @if (!string.IsNullOrEmpty(perfil.FotoBase64))
+                    {
+                        <img src="data:image/jpeg;base64,@perfil.FotoBase64" alt="Foto de perfil" />
+                    }
+                    else
+                    {
+                        <div class="foto-placeholder">
+                            <span>@GetIniciais()</span>
+                        </div>
+                    }
+                </div>
+                <label class="btn-upload">
+                    Alterar Foto
+                    <InputFile OnChange="OnFotoChange" accept="image/*" style="display: none;" />
+                </label>
+            </div>
+
+            <!-- Tabs -->
+            <div class="perfil-tabs">
+                <button class="tab @(activeTab == "dados" ? "active" : "")" @onclick='() => activeTab = "dados"'>
+                    Dados Pessoais
+                </button>
+                <button class="tab @(activeTab == "password" ? "active" : "")" @onclick='() => activeTab = "password"'>
+                    Alterar Password
+                </button>
+            </div>
+
+            <!-- Mensagens -->
+            @if (!string.IsNullOrEmpty(mensagemSucesso))
+            {
+                <div class="alert alert-success">@mensagemSucesso</div>
+            }
+            @if (!string.IsNullOrEmpty(mensagemErro))
+            {
+                <div class="alert alert-error">@mensagemErro</div>
+            }
+
+            <!-- Tab: Dados Pessoais -->
+            @if (activeTab == "dados")
+            {
+                <div class="perfil-form">
+                    <EditForm Model="perfil" OnValidSubmit="GuardarPerfil">
+                        <DataAnnotationsValidator />
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" value="@perfil.Email" readonly class="form-control readonly" />
+                                <small class="text-muted">O email não pode ser alterado</small>
+                            </div>
+                        </div>
+
+                        <div class="form-row two-cols">
+                            <div class="form-group">
+                                <label>Nome *</label>
+                                <InputText @bind-Value="perfil.Nome" class="form-control" placeholder="Primeiro nome" />
+                                <ValidationMessage For="() => perfil.Nome" />
+                            </div>
+                            <div class="form-group">
+                                <label>Apelido *</label>
+                                <InputText @bind-Value="perfil.Apelido" class="form-control" placeholder="Apelido" />
+                                <ValidationMessage For="() => perfil.Apelido" />
+                            </div>
+                        </div>
+
+                        <div class="form-row two-cols">
+                            <div class="form-group">
+                                <label>NIF</label>
+                                <InputNumber @bind-Value="perfil.NIF" class="form-control" placeholder="Número de Identificação Fiscal" />
+                            </div>
+                            <div class="form-group">
+                                <label>Telefone</label>
+                                <InputText @bind-Value="perfil.PhoneNumber" class="form-control" placeholder="+351 912 345 678" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Morada</label>
+                            <InputText @bind-Value="perfil.Rua" class="form-control" placeholder="Rua, número, andar" />
+                        </div>
+
+                        <div class="form-row two-cols">
+                            <div class="form-group">
+                                <label>Localidade</label>
+                                <InputText @bind-Value="perfil.Localidade" class="form-control" placeholder="Cidade" />
+                            </div>
+                            <div class="form-group">
+                                <label>País</label>
+                                <InputText @bind-Value="perfil.Pais" class="form-control" placeholder="Portugal" />
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary" disabled="@isSaving">
+                                @if (isSaving)
+                                {
+                                    <span class="spinner-small"></span>
+                                    <text>A guardar...</text>
+                                }
+                                else
+                                {
+                                    <text>Guardar Alterações</text>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            }
+
+            <!-- Tab: Alterar Password -->
+            @if (activeTab == "password")
+            {
+                <div class="perfil-form">
+                    <EditForm Model="passwordModel" OnValidSubmit="AlterarPassword">
+                        <DataAnnotationsValidator />
+
+                        <div class="form-group">
+                            <label>Password Atual *</label>
+                            <InputText type="password" @bind-Value="passwordModel.PasswordAtual" class="form-control" />
+                            <ValidationMessage For="() => passwordModel.PasswordAtual" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Nova Password *</label>
+                            <InputText type="password" @bind-Value="passwordModel.NovaPassword" class="form-control" />
+                            <ValidationMessage For="() => passwordModel.NovaPassword" />
+                            <small class="text-muted">Mínimo 6 caracteres</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Confirmar Nova Password *</label>
+                            <InputText type="password" @bind-Value="passwordModel.ConfirmarPassword" class="form-control" />
+                            <ValidationMessage For="() => passwordModel.ConfirmarPassword" />
+                        </div>
+
+                        @if (passwordModel.NovaPassword != passwordModel.ConfirmarPassword && 
+                             !string.IsNullOrEmpty(passwordModel.ConfirmarPassword))
+                        {
+                            <div class="alert alert-warning">As passwords não coincidem</div>
+                        }
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary" 
+                                    disabled="@(isSaving || passwordModel.NovaPassword != passwordModel.ConfirmarPassword)">
+                                @if (isSaving)
+                                {
+                                    <span class="spinner-small"></span>
+                                    <text>A alterar...</text>
+                                }
+                                else
+                                {
+                                    <text>Alterar Password</text>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private PerfilModel? perfil;
+    private AlterarPasswordModel passwordModel = new();
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private string activeTab = "dados";
+    private string? mensagemSucesso;
+    private string? mensagemErro;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarPerfil();
+    }
+
+    private async Task CarregarPerfil()
+    {
+        isLoading = true;
+        var userInfo = await AuthService.GetPerfilAsync();
+        
+        if (userInfo != null)
+        {
+            perfil = new PerfilModel
+            {
+                Id = userInfo.Id,
+                Email = userInfo.Email,
+                Nome = userInfo.Nome,
+                Apelido = userInfo.Apelido,
+                NIF = userInfo.NIF,
+                Rua = userInfo.Rua,
+                Localidade = userInfo.Localidade,
+                Pais = userInfo.Pais,
+                PhoneNumber = userInfo.PhoneNumber,
+                FotoBase64 = userInfo.FotoBase64
+            };
+        }
+        
+        isLoading = false;
+    }
+
+    private string GetIniciais()
+    {
+        if (perfil == null) return "?";
+        var nome = perfil.Nome?.FirstOrDefault().ToString().ToUpper() ?? "";
+        var apelido = perfil.Apelido?.FirstOrDefault().ToString().ToUpper() ?? "";
+        return $"{nome}{apelido}";
+    }
+
+    private async Task OnFotoChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            // Max 2MB
+            if (file.Size > 2 * 1024 * 1024)
+            {
+                mensagemErro = "A imagem não pode ter mais de 2MB";
+                return;
+            }
+
+            using var stream = file.OpenReadStream(maxAllowedSize: 2 * 1024 * 1024);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            perfil!.FotoBase64 = Convert.ToBase64String(ms.ToArray());
+            StateHasChanged();
+        }
+    }
+
+    private async Task GuardarPerfil()
+    {
+        if (perfil == null) return;
+
+        LimparMensagens();
+        isSaving = true;
+
+        var result = await AuthService.AtualizarPerfilAsync(perfil);
+
+        if (result.Success)
+        {
+            mensagemSucesso = result.Message;
+        }
+        else
+        {
+            mensagemErro = result.Message;
+        }
+
+        isSaving = false;
+    }
+
+    private async Task AlterarPassword()
+    {
+        LimparMensagens();
+
+        if (passwordModel.NovaPassword != passwordModel.ConfirmarPassword)
+        {
+            mensagemErro = "As passwords não coincidem";
+            return;
+        }
+
+        if (passwordModel.NovaPassword.Length < 6)
+        {
+            mensagemErro = "A password deve ter pelo menos 6 caracteres";
+            return;
+        }
+
+        isSaving = true;
+
+        var result = await AuthService.AlterarPasswordAsync(passwordModel);
+
+        if (result.Success)
+        {
+            mensagemSucesso = result.Message;
+            passwordModel = new AlterarPasswordModel(); // Clear form
+        }
+        else
+        {
+            mensagemErro = result.Message;
+        }
+
+        isSaving = false;
+    }
+
+    private void LimparMensagens()
+    {
+        mensagemSucesso = null;
+        mensagemErro = null;
+    }
+
+    private void IrParaLogin()
+    {
+        Navigation.NavigateTo("/login");
+    }
+}

@@ -1,0 +1,339 @@
+    @page "/meus-produtos/criar"
+@using System.Globalization
+@inject IFornecedorService FornecedorService
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Criar Produto - MyMedia</PageTitle>
+
+<div class="criar-produto-page">
+    <div class="page-header">
+        <button class="btn-link" @onclick="Voltar">Voltar</button>
+        <h1>Novo Produto</h1>
+    </div>
+
+    @if (!string.IsNullOrEmpty(erro))
+    {
+        <div class="alert alert-error" style="background-color: #ffebee; border: 1px solid #f44336; padding: 15px; margin: 10px 0; border-radius: 4px;">
+            <strong>Erro:</strong> @erro
+            <button class="alert-close" @onclick="LimparErro" style="float: right; border: none; background: none; cursor: pointer;">×</button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(debugInfo))
+    {
+        <div style="background-color: #e3f2fd; border: 1px solid #2196f3; padding: 15px; margin: 10px 0; border-radius: 4px;">
+            <strong>Debug:</strong> @debugInfo
+        </div>
+    }
+
+    <div class="form-card">
+        <EditForm Model="model" OnSubmit="Submeter" FormName="CriarProdutoForm">
+            <DataAnnotationsValidator />
+
+            <div class="form-section">
+                <h2>Informações Básicas</h2>
+                
+                <div class="form-group">
+                    <label for="nome">Nome do Produto *</label>
+                    <InputText id="nome" @bind-Value="model.Nome" class="form-control" 
+                               placeholder="Nome do produto" />
+                    <ValidationMessage For="() => model.Nome" />
+                </div>
+
+                <div class="form-group">
+                    <label for="Detalhe">Descrição *</label>
+                    <InputTextArea id="Detalhe" @bind-Value="model.Detalhe" class="form-control" 
+                                   rows="4" placeholder="Descreva o seu produto em detalhe..." />
+                    <ValidationMessage For="() => model.Detalhe" />
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Imagem</h2>
+                
+                <div class="form-group">
+                    <label>Tipo de Imagem</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="tipoImagem" checked="@(tipoImagem == TipoImagemUrl)" 
+                                   @onchange="SelecionarTipoUrl" />
+                            <span>URL da Imagem</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="tipoImagem" checked="@(tipoImagem == TipoImagemUpload)"
+                                   @onchange="SelecionarTipoUpload" />
+                            <span>Upload de Ficheiro</span>
+                        </label>
+                    </div>
+                </div>
+
+                @if (tipoImagem == TipoImagemUrl)
+                {
+                    <div class="form-group">
+                        <label for="urlImagem">URL da Imagem</label>
+                        <InputText id="urlImagem" @bind-Value="model.UrlImagem" class="form-control" 
+                                   placeholder="https://exemplo.com/imagem.jpg" />
+                    </div>
+                }
+                else
+                {
+                    <div class="form-group">
+                        <label for="ficheiro">Ficheiro de Imagem</label>
+                        <InputFile id="ficheiro" OnChange="OnImagemSelecionada" accept="image/*" 
+                                   class="form-control-file" />
+                        <small class="form-help">Formatos aceites: JPG, PNG, GIF. Máx: 2MB</small>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(previewImagem))
+                {
+                    <div class="imagem-preview">
+                        <img src="@previewImagem" alt="Preview" style="max-width: 200px;" />
+                    </div>
+                }
+            </div>
+
+            <div class="form-section">
+                <h2>Preço e Stock</h2>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="precoBase">Preço Base (€) *</label>
+                        <InputNumber id="precoBase" @bind-Value="model.PrecoBase" class="form-control" 
+                                     step="0.01" min="0.01" />
+                        <small class="form-help">O preço que deseja receber.</small>
+                        <ValidationMessage For="() => model.PrecoBase" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="stock">Stock Disponível *</label>
+                        <InputNumber id="stock" @bind-Value="model.Stock" class="form-control" 
+                                     min="0" />
+                        <ValidationMessage For="() => model.Stock" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Classificação</h2>
+                
+                <div class="form-group">
+                    <label for="modo">Modo de Disponibilização * (Encontrados: @modos.Count)</label>
+                    <InputSelect id="modo" @bind-Value="model.ModoDisponibilizacaoId" class="form-control">
+                        <option value="0">-- Selecione --</option>
+                        @foreach (var modo in modos)
+                        {
+                            <option value="@modo.Id">@modo.Nome</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="form-group">
+                    <label>Categorias (Encontradas: @categorias.Count)</label>
+                    @if (categorias.Any())
+                    {
+                        <div class="categorias-selector">
+                            @foreach (var cat in categorias)
+                            {
+                                <label class="checkbox-option" style="display: block; margin: 5px 0;">
+                                    <input type="checkbox" checked="@model.CategoriaIds.Contains(cat.Id)"
+                                           @onchange="e => ToggleCategoria(cat.Id, (bool)e.Value!)" />
+                                    <span>@cat.Nome</span>
+                                </label>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p style="color: orange;">Nenhuma categoria carregada.</p>
+                    }
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" @onclick="Voltar" disabled="@isSubmitting">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn-primary" disabled="@isSubmitting">
+                    @if (isSubmitting)
+                    {
+                        <span>A criar...</span>
+                    }
+                    else
+                    {
+                        <span>Criar Produto</span>
+                    }
+                </button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private const string TipoImagemUrl = "url";
+    private const string TipoImagemUpload = "upload";
+    
+    private CriarProdutoModel model = new();
+    private List<ModoDisponibilizacaoModel> modos = new();
+    private List<CategoriaModel> categorias = new();
+    
+    private string tipoImagem = TipoImagemUrl;
+    private string? previewImagem;
+    private string? erro;
+    private string? debugInfo;
+    private bool isSubmitting;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var isAuth = await AuthService.IsAuthenticatedAsync();
+            debugInfo = $"Authenticated: {isAuth}";
+            
+            if (!isAuth)
+            {
+                Navigation.NavigateTo("/login?returnUrl=/meus-produtos/criar");
+                return;
+            }
+
+            var userInfo = await AuthService.GetUserInfoAsync();
+            debugInfo += $" | User: {userInfo?.Email} | Role: {userInfo?.Role} | IsFornecedor: {userInfo?.IsFornecedor}";
+            
+            if (userInfo?.IsFornecedor != true)
+            {
+                erro = $"Acesso negado. Role atual: {userInfo?.Role}";
+                return;
+            }
+
+            modos = await FornecedorService.GetModosDisponibilizacaoAsync();
+            categorias = await FornecedorService.GetCategoriasAsync();
+            
+            debugInfo += $" | Modos: {modos.Count} | Categorias: {categorias.Count}";
+            
+            if (modos.Count == 0)
+            {
+                erro = "Nenhum modo de disponibilização encontrado. Verifique a conexão com a API.";
+            }
+        }
+        catch (Exception ex)
+        {
+            erro = $"Erro ao inicializar: {ex.Message}";
+        }
+    }
+
+    private void SelecionarTipoUrl() => tipoImagem = TipoImagemUrl;
+    private void SelecionarTipoUpload() => tipoImagem = TipoImagemUpload;
+    private void LimparErro() => erro = null;
+
+    private async Task OnImagemSelecionada(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var file = e.File;
+            long maxFileSize = 2 * 1024 * 1024;
+            
+            if (file.Size > maxFileSize)
+            {
+                erro = "O ficheiro é demasiado grande. Máximo: 2MB";
+                return;
+            }
+
+            using var memoryStream = new MemoryStream();
+            await file.OpenReadStream(maxAllowedSize: maxFileSize).CopyToAsync(memoryStream);
+            var bytes = memoryStream.ToArray();
+            
+            model.ImagemBase64 = Convert.ToBase64String(bytes);
+            model.UrlImagem = null;
+            previewImagem = $"data:{file.ContentType};base64,{model.ImagemBase64}";
+            
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            erro = $"Erro ao carregar imagem: {ex.Message}";
+        }
+    }
+
+    private void ToggleCategoria(int categoriaId, bool selecionado)
+    {
+        if (selecionado && !model.CategoriaIds.Contains(categoriaId))
+        {
+            model.CategoriaIds.Add(categoriaId);
+        }
+        else if (!selecionado && model.CategoriaIds.Contains(categoriaId))
+        {
+            model.CategoriaIds.Remove(categoriaId);
+        }
+    }
+
+    private async Task Submeter(EditContext editContext)
+    {
+        erro = null;
+
+        if (string.IsNullOrWhiteSpace(model.Nome))
+        {
+            erro = "O nome do produto é obrigatório.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(model.Detalhe))
+        {
+            erro = "A descrição do produto é obrigatória.";
+            return;
+        }
+
+        if (model.PrecoBase <= 0)
+        {
+            erro = "O preço base deve ser maior que zero.";
+            return;
+        }
+
+        if (model.ModoDisponibilizacaoId == 0)
+        {
+            erro = "Selecione um modo de disponibilização.";
+            return;
+        }
+
+        isSubmitting = true;
+        StateHasChanged();
+
+        try
+        {
+            if (tipoImagem == TipoImagemUrl)
+            {
+                model.ImagemBase64 = null;
+            }
+
+            debugInfo = $"Submitting: Nome={model.Nome}, Preco={model.PrecoBase}, Modo={model.ModoDisponibilizacaoId}, Categorias={model.CategoriaIds.Count}";
+            StateHasChanged();
+            
+            var (success, produto, error) = await FornecedorService.CriarProdutoAsync(model);
+            
+            debugInfo += $" | Result: success={success}, error={error}";
+
+            if (success)
+            {
+                Navigation.NavigateTo("/meus-produtos");
+            }
+            else
+            {
+                erro = error ?? "Erro ao criar produto. Tente novamente.";
+            }
+        }
+        catch (Exception ex)
+        {
+            erro = $"Exceção: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    private void Voltar()
+    {
+        Navigation.NavigateTo("/meus-produtos");
+    }
+}
