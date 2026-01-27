@@ -1,0 +1,413 @@
+﻿@page "/encomenda/{Id:int}"
+@using System.Globalization
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Cliente")]
+@inject IEncomendaService EncomendaService
+@inject NavigationManager Navigation
+
+<PageTitle>Encomenda #@Id - MyMedia</PageTitle>
+
+<div class="encomenda-detalhe-page">
+    @if (novaEncomenda)
+    {
+        <div class="alert alert-success sucesso-compra">
+            <span class="success-icon"></span>
+            <h2>Encomenda criada com sucesso!</h2>
+            <p>A sua encomenda foi registada e está a aguardar processamento.</p>
+        </div>
+    }
+
+    @if (isLoading)
+    {
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>A carregar encomenda...</p>
+        </div>
+    }
+    else if (encomenda == null)
+    {
+        <div class="error-state">
+            <h2>Encomenda não encontrada</h2>
+            <a href="/minhas-encomendas" class="btn-primary">Ver minhas encomendas</a>
+        </div>
+    }
+    else
+    {
+        <div class="encomenda-detalhe">
+            <div class="encomenda-header-detalhe">
+                <div>
+                    <h1>Encomenda #@encomenda.Id</h1>
+                    <p class="encomenda-data">Criada em @encomenda.DataCriacao.ToString("dd/MM/yyyy 'às' HH:mm")</p>
+                </div>
+                <span class="encomenda-estado-grande estado-@encomenda.Estado.ToLower()">@encomenda.Estado</span>
+            </div>
+
+            <!-- Timeline de estados -->
+            <div class="encomenda-timeline">
+                <div class="timeline-item @GetTimelineClass("Pendente")">
+                    <span class="timeline-icon"></span>
+                    <span class="timeline-label">Pendente</span>
+                </div>
+                <div class="timeline-item @GetTimelineClass("Paga")">
+                    <span class="timeline-icon"></span>
+                    <span class="timeline-label">Paga</span>
+                </div>
+                <div class="timeline-item @GetTimelineClass("Confirmada")">
+                    <span class="timeline-icon"></span>
+                    <span class="timeline-label">Confirmada</span>
+                </div>
+                <div class="timeline-item @GetTimelineClass("Expedido")">
+                    <span class="timeline-icon"></span>
+                    <span class="timeline-label">Expedido</span>
+                </div>
+                <div class="timeline-item @GetTimelineClass("Concluida")">
+                    <span class="timeline-icon"></span>
+                    <span class="timeline-label">Concluída</span>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-error">@errorMessage</div>
+            }
+
+            @if (!string.IsNullOrEmpty(successMessage))
+            {
+                <div class="alert alert-success">@successMessage</div>
+            }
+
+            <!-- Ações disponíveis -->
+            @if (encomenda.PodePagar || encomenda.PodeCancelar)
+            {
+                <div class="encomenda-acoes">
+                    @if (encomenda.PodePagar)
+                    {
+                        <div class="pagamento-section">
+                            <h3>Efetuar Pagamento</h3>
+                            
+                            <div class="metodos-pagamento-grid">
+                                <div class="payment-option @(metodoPagamento == "MBWay" ? "selected" : "")" @onclick="@(() => metodoPagamento = "MBWay")">
+                                    <span>MB WAY</span>
+                                </div>
+                                <div class="payment-option @(metodoPagamento == "Multibanco" ? "selected" : "")" @onclick="@(() => metodoPagamento = "Multibanco")">
+                                    <span>Multibanco</span>
+                                </div>
+                                <div class="payment-option @(metodoPagamento == "CartaoCredito" ? "selected" : "")" @onclick="@(() => metodoPagamento = "CartaoCredito")">
+                                    <span>Cartão</span>
+                                </div>
+                                <div class="payment-option @(metodoPagamento == "Transferencia" ? "selected" : "")" @onclick="@(() => metodoPagamento = "Transferencia")">
+                                    <span>Transferência</span>
+                                </div>
+                            </div>
+
+                            <!-- Campos dinâmicos por método -->
+                            <div class="payment-details mt-3">
+                                @if (metodoPagamento == "MBWay")
+                                {
+                                    <div class="payment-form-mbway">
+                                        <label class="form-label"><strong>Número de telemóvel MB WAY</strong></label>
+                                        <input type="text" @bind="telefoneMBWay" class="form-control" placeholder="912 345 678" style="max-width: 250px;" />
+                                        <small class="text-muted">Receberá uma notificação na app MB WAY para confirmar.</small>
+                                    </div>
+                                }
+                                else if (metodoPagamento == "Multibanco")
+                                {
+                                    <div class="multibanco-card">
+                                        <h6 class="multibanco-title">Dados para pagamento Multibanco</h6>
+                                        <div class="multibanco-details">
+                                            <div class="multibanco-detail-row">
+                                                <span class="multibanco-detail-label">Entidade</span>
+                                                <span class="multibanco-detail-value">21 312</span>
+                                            </div>
+                                            <div class="multibanco-detail-row">
+                                                <span class="multibanco-detail-label">Referência</span>
+                                                <span class="multibanco-detail-value">@GerarReferenciaMB()</span>
+                                            </div>
+                                            <div class="multibanco-detail-row multibanco-detail-total">
+                                                <span class="multibanco-detail-label">Valor</span>
+                                                <span class="multibanco-detail-value">@FormatarPreco(encomenda.Total)</span>
+                                            </div>
+                                        </div>
+                                        <p class="multibanco-note">A referência é válida por 72 horas.</p>
+                                    </div>
+                                }
+                                else if (metodoPagamento == "CartaoCredito")
+                                {
+                                    <div class="payment-form-cartao">
+                                        <div class="mb-2">
+                                            <label class="form-label">Número do cartão</label>
+                                            <input type="text" @bind="numeroCartao" class="form-control" placeholder="1234 5678 9012 3456" />
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-6 mb-2">
+                                                <label class="form-label">Validade</label>
+                                                <input type="text" @bind="validadeCartao" class="form-control" placeholder="MM/AA" />
+                                            </div>
+                                            <div class="col-6 mb-2">
+                                                <label class="form-label">CVV</label>
+                                                <input type="password" @bind="cvvCartao" class="form-control" placeholder="123" />
+                                            </div>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label">Nome no cartão</label>
+                                            <input type="text" @bind="nomeCartao" class="form-control" placeholder="NOME APELIDO" />
+                                        </div>
+                                    </div>
+                                }
+                                else if (metodoPagamento == "Transferencia")
+                                {
+                                    <div class="bank-transfer-card">
+                                        <h6 class="bank-transfer-title">Dados para Transferência Bancária</h6>
+                                        <div class="bank-transfer-details">
+                                            <div class="bank-detail-row">
+                                                <span class="bank-detail-label">IBAN</span>
+                                                <span class="bank-detail-value">PT50 0033 0000 4532 9876 5432 1</span>
+                                            </div>
+                                            <div class="bank-detail-row">
+                                                <span class="bank-detail-label">BIC/SWIFT</span>
+                                                <span class="bank-detail-value">BCOMPTPL</span>
+                                            </div>
+                                            <div class="bank-detail-row">
+                                                <span class="bank-detail-label">Banco</span>
+                                                <span class="bank-detail-value">Millennium BCP</span>
+                                            </div>
+                                            <div class="bank-detail-row">
+                                                <span class="bank-detail-label">Titular</span>
+                                                <span class="bank-detail-value">MyMedia Lda</span>
+                                            </div>
+                                            <div class="bank-detail-row bank-detail-total">
+                                                <span class="bank-detail-label">Valor</span>
+                                                <span class="bank-detail-value">@FormatarPreco(encomenda.Total)</span>
+                                            </div>
+                                        </div>
+                                        <p class="bank-transfer-note">Use o nº da encomenda (#@encomenda.Id) como referência.</p>
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn-primary btn-lg" @onclick="PagarEncomenda" disabled="@isProcessing">
+                                    @if (isProcessing)
+                                    {
+                                        <span>A processar...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Confirmar Pagamento - @FormatarPreco(encomenda.Total)</span>
+                                    }
+                                </button>
+                            </div>
+                        </div>
+                    }
+                    @if (encomenda.PodeCancelar)
+                    {
+                        <div class="mt-3">
+                            <button class="btn-danger" @onclick="CancelarEncomenda" disabled="@isProcessing">
+                                Cancelar Encomenda
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Itens da encomenda -->
+            <div class="encomenda-itens-lista">
+                <h2>Itens da Encomenda</h2>
+                @foreach (var item in encomenda.Itens)
+                {
+                    <div class="encomenda-item">
+                        <div class="item-imagem">
+                            @if (!string.IsNullOrEmpty(item.ProdutoImagem))
+                            {
+                                <img src="@item.ProdutoImagem" alt="@item.ProdutoNome" />
+                            }
+                            else
+                            {
+                                <div class="placeholder-img"></div>
+                            }
+                        </div>
+                        <div class="item-detalhes">
+                            <h3>@item.ProdutoNome</h3>
+                            <p>Quantidade: @item.Quantidade × @FormatarPreco(item.PrecoUnitario)</p>
+                        </div>
+                        <div class="item-subtotal">
+                            @FormatarPreco(item.Subtotal)
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Resumo de pagamento -->
+            <div class="encomenda-resumo-pagamento">
+                <div class="resumo-linha">
+                    <span>Subtotal</span>
+                    <span>@FormatarPreco(encomenda.Total)</span>
+                </div>
+                <div class="resumo-linha">
+                    <span>Portes</span>
+                    <span>Grátis</span>
+                </div>
+                <div class="resumo-total">
+                    <span>Total</span>
+                    <span>@FormatarPreco(encomenda.Total)</span>
+                </div>
+                @if (!string.IsNullOrEmpty(encomenda.MetodoPagamento))
+                {
+                    <div class="metodo-pagamento-info">
+                        <span>Método: @encomenda.MetodoPagamento</span>
+                    </div>
+                }
+            </div>
+
+            <div class="voltar-link">
+                <a href="/minhas-encomendas">Voltar às minhas encomendas</a>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private static readonly CultureInfo CulturaEuro = new("pt-PT");
+    
+    [Parameter]
+    public int Id { get; set; }
+
+    [SupplyParameterFromQuery]
+    public bool Nova { get; set; }
+
+    private EncomendaModel? encomenda;
+    private bool isLoading = true;
+    private bool isProcessing;
+    private bool novaEncomenda;
+    private string? errorMessage;
+    private string? successMessage;
+    private string metodoPagamento = "MBWay";
+    
+    // Campos para pagamento
+    private string? telefoneMBWay;
+    private string? numeroCartao;
+    private string? validadeCartao;
+    private string? cvvCartao;
+    private string? nomeCartao;
+
+    private readonly string[] ordenEstados = { "Pendente", "Paga", "Confirmada", "Expedido", "Concluida" };
+
+    private string FormatarPreco(decimal preco) => preco.ToString("C", CulturaEuro);
+
+    private string GerarReferenciaMB()
+    {
+        // Gera referência baseada no ID da encomenda
+        var baseRef = (Id * 1000) + 123456;
+        var refStr = baseRef.ToString().PadLeft(9, '0');
+        return $"{refStr.Substring(0,3)} {refStr.Substring(3,3)} {refStr.Substring(6,3)}";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        novaEncomenda = Nova;
+        await CarregarEncomenda();
+    }
+
+    private async Task CarregarEncomenda()
+    {
+        isLoading = true;
+        encomenda = await EncomendaService.GetEncomendaAsync(Id);
+        isLoading = false;
+    }
+
+    private bool IsEstadoAtivo(string estado)
+    {
+        return string.Equals(encomenda?.Estado, estado, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private bool IsEstadoPassado(string estado)
+    {
+        if (encomenda == null) return false;
+        var indexAtual = GetEstadoIndex(encomenda.Estado);
+        var indexEstado = GetEstadoIndex(estado);
+        return indexEstado >= 0 && indexAtual >= 0 && indexEstado < indexAtual;
+    }
+
+    private int GetEstadoIndex(string estado)
+    {
+        for (int i = 0; i < ordenEstados.Length; i++)
+        {
+            if (string.Equals(ordenEstados[i], estado, StringComparison.OrdinalIgnoreCase))
+                return i;
+        }
+        return -1;
+    }
+
+    private string GetTimelineClass(string estado)
+    {
+        if (encomenda == null) return "";
+        
+        var indexAtual = GetEstadoIndex(encomenda.Estado);
+        var indexEstado = GetEstadoIndex(estado);
+        
+        if (indexEstado < 0 || indexAtual < 0) return "";
+        
+        // Estado atual - sempre verde
+        if (indexEstado == indexAtual)
+        {
+            return "ativo";
+        }
+        
+        // Estado já passou - verde
+        if (indexEstado < indexAtual)
+        {
+            return "passado";
+        }
+        
+        // Próximo estado - roxo (Paga quando Pendente, Confirmada quando Paga)
+        if (indexEstado == indexAtual + 1)
+        {
+            return "proximo";
+        }
+        
+        return "";
+    }
+
+    private async Task PagarEncomenda()
+    {
+        isProcessing = true;
+        errorMessage = null;
+        successMessage = null;
+        StateHasChanged();
+
+        var (success, error) = await EncomendaService.PagarEncomendaAsync(Id, metodoPagamento);
+
+        if (success)
+        {
+            Navigation.NavigateTo("/minhas-encomendas");
+        }
+        else
+        {
+            errorMessage = error ?? "Erro ao processar pagamento";
+        }
+
+        isProcessing = false;
+    }
+
+    private async Task CancelarEncomenda()
+    {
+        isProcessing = true;
+        errorMessage = null;
+        successMessage = null;
+        StateHasChanged();
+
+        var (success, error) = await EncomendaService.CancelarEncomendaAsync(Id);
+
+        if (success)
+        {
+            successMessage = "Encomenda cancelada com sucesso!";
+            await CarregarEncomenda();
+        }
+        else
+        {
+            errorMessage = error ?? "Erro ao cancelar encomenda";
+        }
+
+        isProcessing = false;
+    }
+}

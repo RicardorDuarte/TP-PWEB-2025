@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>MyMedia</title>
+    <base href="/" />
+    <!-- CSS base do RCLGeral com variáveis e componentes -->
+    <link rel="stylesheet" href="_content/RCLGeral/css/app.css" />
+    <link rel="stylesheet" href="_content/RCLGeral/css/pages.css" />
+    <!-- CSS específico do MAUI -->
+    <link rel="stylesheet" href="css/maui-app.css" />
+</head>
+
+<body>
+
+    <div class="status-bar-safe-area"></div>
+
+    <div id="app">
+        <div class="loading-screen">
+            <div class="loading-content">
+                <h1>MyMedia</h1>
+                <div class="spinner"></div>
+                <p>A carregar...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui">
+        Ocorreu um erro. <a href="" class="reload">Recarregar</a>
+        <a class="dismiss">??</a>
+    </div>
+
+    <script src="_framework/blazor.webview.js" autostart="false"></script>
+
+</body>
+
+</html>
